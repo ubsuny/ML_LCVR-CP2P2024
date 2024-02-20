@@ -1,0 +1,3 @@
+[submodule "new_funcgen"]
+	path = new_funcgen
+	url = https://github.com/WildJimmy/new_funcgen-jimmy
