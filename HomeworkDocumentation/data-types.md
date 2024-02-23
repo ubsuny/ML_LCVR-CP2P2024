@@ -30,6 +30,7 @@ With more info depending on the query.
 So how do we programatically check a given value? For example, the LCVR's should not have a driving voltage over 20 volts, so we need to check AMP and ensure that it is not greater than 20. Here, python annotations are extremely useful. We can pick out the point in the response that gives the amplitude, then cast that string to a float and check to make sure it's no greater than 20.
 ```Python
 def volt_check():
+  waveInfo = "<channel>:BSWV<type>,FRQ,<frequency>,AMP,<amplitude>,OFST,<offset>,DUTY,<duty>"
   voltIndexStart = waveInfo.find("AMP")
   voltIndexEnd = waveInfo.find("V,AMPVRMS")
   if float(waveInfo[voltIndexStart+4:voltIndexEnd]) > 20.0:
