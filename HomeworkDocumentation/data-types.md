@@ -4,6 +4,7 @@ In this project, several different data types will be used. Here we will demonst
 
 # String
 
+## Example 1
 The first data type we'll look at is string. This is crucial in communicating with the function generator used to control the input voltage to the LCVR's, since it communicates via SCPI (Standard Commands for Programmable Instruments) queries. An example of an SCPI query is as follows:
 ```Python
 import pyvisa
@@ -17,3 +18,23 @@ waveInfo = sdg.query(getInfo)
 ```
 
 It's crucial that the data sent with `query()` is a string, since otherwise the function generator will not be able to interpret it.
+
+## Example 2
+
+An interesting example comes when we look at the output of `query()`. It returns a string in the form of
+```Python
+waveInfo = "<channel>:BSWV<type>,FRQ,<frequency>,AMP,<amplitude>,OFST,<offset>,DUTY,<duty>"
+```
+With more info depending on the query.
+
+So how do we programatically check a given value? For example, the LCVR's should not have a driving voltage over 20 volts, so we need to check AMP and ensure that it is not greater than 20. Here, python annotations are extremely useful. We can pick out the point in the response that gives the amplitude, then cast that string to a float and check to make sure it's no greater than 20.
+```Python
+def volt_check():
+  voltIndexStart = waveInfo.find("AMP")
+  voltIndexEnd = waveInfo.find("V,AMPVRMS")
+  if float(waveInfo[voltIndexStart+4:voltIndexEnd]) > 20.0:
+      sdg.write("C1:AMP 1")
+      print("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 20 V")
+      raise SystemExit
+```
+Where here we made sure to cast our string to a float so that our if statement can accurately compare this to our voltage threshold. We can run this function periodically as a safety measure to ensure that at no point is the voltage pushed above the threshold.
