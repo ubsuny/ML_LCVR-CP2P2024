@@ -19,7 +19,7 @@ waveInfo = sdg.query(getInfo)
 
 It's crucial that the data sent with `query()` is a string, since otherwise the function generator will not be able to interpret it.
 
-## Example 2
+## Example 2 (String and Float)
 
 An interesting example comes when we look at the output of `query()`. It returns a string in the form of
 ```Python
@@ -38,3 +38,7 @@ def volt_check():
       raise SystemExit
 ```
 Where here we made sure to cast our string to a float so that our if statement can accurately compare this to our voltage threshold. We can run this function periodically as a safety measure to ensure that at no point is the voltage pushed above the threshold.
+
+# Int
+
+A space-saving measure that may prove useful is to store certain training data values as integers, rather than allowing python to assign a type. The model is trained off of 3 parameters, as is shown in the example svm_regression_test.ipynb. Two of these parameters are polarization angle and wavlength of input light. Both of them will probably only be measurable to integer precision, so it may be beneficial to ensure they are stored/sent as such, since this will save much needed memory.
