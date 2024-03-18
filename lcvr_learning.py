@@ -7,7 +7,7 @@ sdg = rm.open_resource('USB0::62700::4354::SDG2XCAD5R3372::0::INSTR')
 
 class lcvr_learning:
     
-    def __init__(i2c1,i2c2,input_channel = 1, sample_rate = 18, funcgen = sdg):
+    def __init__(self,i2c1,i2c2,input_channel = 1, sample_rate = 18, funcgen = sdg):
         """Initializes the object
 
         Args:
@@ -67,20 +67,27 @@ class lcvr_learning:
             else:
                 break
 
-        if waveInfo1[freqIndex + 4:freqIndex + 8] != "2000":
+        freqIndex1 = waveInfo1.find("FRQ")
+        voltIndexStart1 = waveInfo1.find("AMP")
+        voltIndexEnd1 = waveInfo1.find("V,AMPVRMS")
+        freqIndex2 = waveInfo2.find("FRQ")
+        voltIndexStart2 = waveInfo2.find("AMP")
+        voltIndexEnd2 = waveInfo2.find("V,AMPVRMS")
+
+        if waveInfo1[freqIndex1 + 4:freqIndex1 + 8] != "2000":
             self.funcgen.write("C1:FRQ, 2000")
             print("WARNING: INCORRECT FREQUENCY, MUST BE 2 kHz")
             raise SystemExit
-        if float(waveInfo1[voltIndexStart+4:voltIndexEnd]) > 20.0:
+        if float(waveInfo1[voltIndexStart1+4:voltIndexEnd1]) > 20.0:
             self.funcgen.write("C1:AMP 1")
             print("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 20 V")
             raise SystemExit
         
-        if waveInfo2[freqIndex + 4:freqIndex + 8] != "2000":
+        if waveInfo2[freqIndex2 + 4:freqIndex2 + 8] != "2000":
             self.funcgen.write("C2:FRQ, 2000")
             print("WARNING: INCORRECT FREQUENCY, MUST BE 2 kHz")
             raise SystemExit
-        if float(waveInfo2[voltIndexStart+4:voltIndexEnd]) > 20.0:
+        if float(waveInfo2[voltIndexStart2+4:voltIndexEnd2]) > 20.0:
             self.funcgen.write("C2:AMP 1")
             print("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 20 V")
             raise SystemExit
