@@ -75,20 +75,20 @@ class lcvr_learning:
         voltIndexEnd2 = waveInfo2.find("V,AMPVRMS")
 
         if waveInfo1[freqIndex1 + 4:freqIndex1 + 8] != "2000":
-            self.funcgen.write("C1:FRQ, 2000")
+            self.funcgen.write("C1:BSWV FRQ, 2000")
             print("WARNING: INCORRECT FREQUENCY, MUST BE 2 kHz")
             raise SystemExit
         if float(waveInfo1[voltIndexStart1+4:voltIndexEnd1]) > 20.0:
-            self.funcgen.write("C1:AMP 1")
+            self.funcgen.write("C1:BSWV AMP, 1")
             print("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 20 V")
             raise SystemExit
         
         if waveInfo2[freqIndex2 + 4:freqIndex2 + 8] != "2000":
-            self.funcgen.write("C2:FRQ, 2000")
+            self.funcgen.write("C2:BSWV FRQ, 2000")
             print("WARNING: INCORRECT FREQUENCY, MUST BE 2 kHz")
             raise SystemExit
         if float(waveInfo2[voltIndexStart2+4:voltIndexEnd2]) > 20.0:
-            self.funcgen.write("C2:AMP 1")
+            self.funcgen.write("C2:BSWV AMP, 1")
             print("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 20 V")
             raise SystemExit
         
