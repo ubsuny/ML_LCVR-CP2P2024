@@ -92,7 +92,10 @@ class lcvr_learning:
             print("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 20 V")
             raise SystemExit
         
-
+    def outputs_on(self):
+        self.check_params()
+        self.funcgen.write("C1:OUTP ON")
+        self.funcgen.write("C2:OUTP ON")
     
     def get_training_data(self, num_iterations):
 
@@ -104,6 +107,7 @@ class lcvr_learning:
         self.check_params()
         self.set_ch1_volts(1)
         self.set_ch2_volts(1)
+        self.funcgen.write()
         
         volt_range = np.linspace(0,20,realnum)
 
