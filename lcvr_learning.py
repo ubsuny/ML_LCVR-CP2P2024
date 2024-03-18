@@ -113,6 +113,7 @@ class lcvr_learning:
         self.outputs_on()
         
         volt_range = np.linspace(0,20,realnum) #MAX VOLTAGE IS 20 V!
+        delay = .05 #Based on response time of LCVR and *SLEW RATE OF FUNCTION GENERATOR*! Check this in data sheet
 
         # Now iterate across a wide range of voltage configs for channel 1 and 2 to record training data
         # Note response time of LCVR is ~30 ms max, so that limit is hard coded in right now. For speed
@@ -127,7 +128,7 @@ class lcvr_learning:
             ch2_volts = 1 #I know this is bad. Probably should just implement a function to read it straight will be quick
             self.set_ch1_volts(ch1_volts)
             self.set_ch2_volts(ch2_volts)
-            time.sleep(.05)
+            time.sleep(delay)
             new_row = {'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage}
             trainingdata.append(new_row)
 
@@ -140,7 +141,7 @@ class lcvr_learning:
             ch2_volts = volt_range[i]
             self.set_ch1_volts(ch1_volts)
             self.set_ch2_volts(ch2_volts)
-            time.sleep(.05)
+            time.sleep(delay)
             new_row = {'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage}
             trainingdata.append(new_row)
         
@@ -151,7 +152,7 @@ class lcvr_learning:
             ch2_volts = volt_range[i]
             self.set_ch1_volts(ch1_volts)
             self.set_ch2_volts(ch2_volts)
-            time.sleep(.05)
+            time.sleep(delay)
             new_row = {'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage}
             trainingdata.append(new_row)
 
@@ -162,7 +163,7 @@ class lcvr_learning:
             ch2_volts = volt_range[len(volt_range) - i - 1]
             self.set_ch1_volts(ch1_volts)
             self.set_ch2_volts(ch2_volts)
-            time.sleep(.05)
+            time.sleep(delay)
             new_row = {'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage}
             trainingdata.append(new_row)
 
