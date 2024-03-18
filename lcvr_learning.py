@@ -108,10 +108,9 @@ class lcvr_learning:
         print("Starting training data scan. Don't touch anything please")
 
         # First check to make sure the parameters are in a safe range, then set voltage to a low value on both
-        self.check_params()
         self.set_ch1_volts(1)
         self.set_ch2_volts(1)
-        self.funcgen.write()
+        self.outputs_on()
         
         volt_range = np.linspace(0,20,realnum)
 
@@ -123,7 +122,7 @@ class lcvr_learning:
         
         #First keep ch2 constant and iterate over ch1
         for i in range(realnum):
-            time.sleep(.03)
+            time.sleep(.05)
             ch1_volts = volt_range[i]
             ch2_volts = 1 #I know this is bad. Probably should just implement a function to read it straight will be quick
             self.set_ch1_volts(ch1_volts)
@@ -134,7 +133,7 @@ class lcvr_learning:
 
         #Now ch1 constant iterate over ch2
         for i in range(realnum):
-            time.sleep(.03)
+            time.sleep(.05)
             ch1_volts = 1 #I know this is bad. Probably should just implement a function to read it straight will be quick
             ch2_volts = volt_range[i]
             self.set_ch2_volts(ch2_volts)
@@ -143,7 +142,7 @@ class lcvr_learning:
         
         #Now both increasing together
         for i in range(realnum):
-            time.sleep(.03)
+            time.sleep(.05)
             ch1_volts = volt_range[i]
             ch2_volts = volt_range[i]
             self.set_ch2_volts(ch2_volts)
@@ -152,7 +151,7 @@ class lcvr_learning:
 
         #Now opposite directions
         for i in range(realnum):
-            time.sleep(.03)
+            time.sleep(.05)
             ch1_volts = volt_range[i]
             ch2_volts = volt_range[len(volt_range) - i - 1]
             self.set_ch2_volts(ch2_volts)
