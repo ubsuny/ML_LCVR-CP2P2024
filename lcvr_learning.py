@@ -1,5 +1,6 @@
 from ADCDifferentialPi import ADCDifferentialPi as adc
 from time import sleep
+import numpy as np
 import pyvisa
 rm = pyvisa.ResourceManager('@py')
 sdg = rm.open_resource('USB0::62700::4354::SDG2XCAD5R3372::0::INSTR')
@@ -87,9 +88,55 @@ class lcvr_learning:
         
 
     
-    def get_training_data(self):
+    def get_training_data(self, num_iterations):
+
+        realnum = int(num_iterations/4)
 
         print("Starting training data scan. Don't touch anything please")
 
         # First check to make sure the parameters are in a safe range, then set voltage to a low value on both
         self.check_params()
+        self.set_ch1_volts(1)
+        self.set_ch2_volts(1)
+        
+        volt_range = np.linspace(0,20,realnum)
+
+        # Now iterate across a wide range of voltage configs for channel 1 and 2 to record training data
+        trainingdata = []
+        
+        #First keep ch2 constant and iterate over ch1
+        for i in range(realnum):
+            ch1_volts = volt_range[i]
+            ch2_volts = 1 #I know this is bad. Probably should just implement a function to read it straight will be quick
+            self.set_ch1_volts(ch1_volts)
+            new_row = {'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage}
+            trainingdata.append(new_row)
+
+        self.set_ch1_volts(1)
+
+        #Now ch1 constant iterate over ch2
+        for i in range(realnum):
+            ch1_volts = 1 #I know this is bad. Probably should just implement a function to read it straight will be quick
+            ch2_volts = volt_range[i]
+            self.set_ch2_volts(ch2_volts)
+            new_row = {'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage}
+            trainingdata.append(new_row)
+        
+        #Now both increasing together
+        for i in range(realnum):
+            ch1_volts = volt_range[i]
+            ch2_volts = volt_range[i]
+            self.set_ch2_volts(ch2_volts)
+            new_row = {'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage}
+            trainingdata.append(new_row)
+
+        #Now opposite directions
+        for i in range(realnum):
+            ch1_volts = volt_range[i]
+            ch2_volts = volt_range[len(volt_range) - i - 1]
+            self.set_ch2_volts(ch2_volts)
+            new_row = {'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage}
+            trainingdata.append(new_row)
+        trainingdataframe = pd.DataFrame(trainingdata)
+
+        return trainingdataframe
