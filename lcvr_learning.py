@@ -1,5 +1,5 @@
 from ADCDifferentialPi import ADCDifferentialPi as adc
-from time import sleep
+import time
 import numpy as np
 import pyvisa
 rm = pyvisa.ResourceManager('@py')
@@ -34,14 +34,14 @@ class lcvr_learning:
     
     def set_ch1_volts(self,voltage):
 
-        if float(voltage) < 20.0:
+        if float(voltage) <= 20.0:
             self.funcgen.write("C1:BSWV AMP,  "+ str(voltage))
         else:
             raise("VOLTAGE CANNOT EXCEED 20 V LEST YOU HARM THE LCVR'S")
     
     def set_ch2_volts(self,voltage):
 
-        if float(voltage) < 20.0:
+        if float(voltage) <= 20.0:
             self.funcgen.write("C2:BSWV AMP,  "+ str(voltage))
         else:
             raise("VOLTAGE CANNOT EXCEED 20 V LEST YOU HARM THE LCVR'S")
@@ -165,6 +165,11 @@ class lcvr_learning:
             time.sleep(.05)
             new_row = {'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage}
             trainingdata.append(new_row)
+
+        self.outputs_off()
+        self.set_ch1_volts(1)
+        self.set_ch2_volts(1)
+
 
         trainingdataframe = pd.DataFrame(trainingdata)
 
