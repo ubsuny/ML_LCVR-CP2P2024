@@ -96,6 +96,10 @@ class lcvr_learning:
         self.check_params()
         self.funcgen.write("C1:OUTP ON")
         self.funcgen.write("C2:OUTP ON")
+
+    def outputs_off(self):
+        self.funcgen.write("C1:OUTP OFF")
+        self.funcgen.write("C2:OUTP OFF")
     
     def get_training_data(self, num_iterations):
 
