@@ -36,6 +36,37 @@ class lcvr_learning:
 
         return self.signal.read_voltage(self.input_channel)
     
+    def get_wave_info(self,int(channel)):
+        """
+        Gets output wave info in a way that's slightly less annoying than using SCPI
+
+        Args:
+            channel: Channel number, should be 1 or 2 for Siglent 2042x
+        
+        Returns:
+            freq: Frequency (in Hz)
+            amp: Amplitude (in V)
+        """
+    
+        waveInfo = self.funcgen.query("C" + str(channel) + ":BSWV?")
+
+        # This is weird, but sometimes the function generator returns a null statement
+        # The first char of the proper return is "C", but not for the null
+        while 1 < 2:
+            if waveInfo[0] != "C":
+                waveInfo = self.funcgen.query("C" + str(channel) + ":BSWV?")
+            else:
+                break
+        
+        voltIndexStart = waveInfo.find("AMP")
+        voltIndexEnd = waveInfo.find("V,AMPVRMS")
+        freqIndex = waveInfo.find("FRQ")
+    
+        freq = float(waveInfo[freqIndex2 + 4:freqIndex2 + 8])
+        volt = float(waveInfo[voltIndexStart+4:voltIndexEnd])
+    
+        return freq, volt
+    
     def set_ch1_volts(self,voltage):
 
         if float(voltage) <= 20.0:
@@ -49,6 +80,7 @@ class lcvr_learning:
             self.funcgen.write("C2:BSWV AMP,  "+ str(voltage))
         else:
             raise("VOLTAGE CANNOT EXCEED 20 V LEST YOU HARM THE LCVR'S")
+    
         
     def check_params(self):
         """
@@ -56,42 +88,23 @@ class lcvr_learning:
         2 kHz, < 20 V square waves. Should do nothing if all is good, but the idea is just to have a function to call that
         will be able to periodically check that the operating conditions are good.
         """
-        waveInfo1 = self.funcgen.query("C1:BSWV?")
-        waveInfo2 = self.funcgen.query("C2:BSWV?")
+        freq1, volt1 = get_wave_info(1)
+        freq2, volt2 = get_wave_info(2)
 
-        while 1 < 2:
-            if waveInfo1[0] != "C":
-                waveInfo1 = self.funcgen.query("C1:BSWV?")
-            else:
-                break
-
-        while 1 < 2:
-            if waveInfo2[0] != "C":
-                waveInfo2 = self.funcgen.query("C2:BSWV?")
-            else:
-                break
-
-        freqIndex1 = waveInfo1.find("FRQ")
-        voltIndexStart1 = waveInfo1.find("AMP")
-        voltIndexEnd1 = waveInfo1.find("V,AMPVRMS")
-        freqIndex2 = waveInfo2.find("FRQ")
-        voltIndexStart2 = waveInfo2.find("AMP")
-        voltIndexEnd2 = waveInfo2.find("V,AMPVRMS")
-
-        if waveInfo1[freqIndex1 + 4:freqIndex1 + 8] != "2000":
+        if freq1 != 2000.0:
             self.funcgen.write("C1:BSWV FRQ, 2000")
             print("WARNING: INCORRECT FREQUENCY, MUST BE 2 kHz")
             raise SystemExit
-        if float(waveInfo1[voltIndexStart1+4:voltIndexEnd1]) > 20.0:
+        if volt1 > 20.0:
             self.funcgen.write("C1:BSWV AMP, 1")
             print("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 20 V")
             raise SystemExit
         
-        if waveInfo2[freqIndex2 + 4:freqIndex2 + 8] != "2000":
+        if freq2 != "2000":
             self.funcgen.write("C2:BSWV FRQ, 2000")
             print("WARNING: INCORRECT FREQUENCY, MUST BE 2 kHz")
             raise SystemExit
-        if float(waveInfo2[voltIndexStart2+4:voltIndexEnd2]) > 20.0:
+        if volt2 > 20.0:
             self.funcgen.write("C2:BSWV AMP, 1")
             print("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 20 V")
             raise SystemExit
@@ -119,17 +132,19 @@ class lcvr_learning:
         volt_range = np.linspace(0,20,realnum) #MAX VOLTAGE IS 20 V!
         delay = .05 #Based on response time of LCVR and *SLEW RATE OF FUNCTION GENERATOR*! Check this in data sheet
 
+
         # Now iterate across a wide range of voltage configs for channel 1 and 2 to record training data
         # Note response time of LCVR is ~30 ms max, so that limit is hard coded in right now. For speed
         # later there may be ways to lower that (i.e. time how long each step takes  and subtract it so we can save a few
         # ms in case we need to do a lot of iterations?)
         trainingdata = []
-        
+
+        #This could be its own function maybe? Then call it 4 times
         #First keep ch2 constant and iterate over ch1
         for i in range(realnum):
             self.check_params()
             ch1_volts = volt_range[i]
-            ch2_volts = 1 #I know this is bad. Probably should just implement a function to read it straight will be quick
+            ch2_volts = self.get_wave_info(2)[1]
             self.set_ch1_volts(ch1_volts)
             self.set_ch2_volts(ch2_volts)
             time.sleep(delay)
@@ -141,7 +156,7 @@ class lcvr_learning:
         #Now ch1 constant iterate over ch2
         for i in range(realnum):
             self.check_params()
-            ch1_volts = 1 #I know this is bad. Probably should just implement a function to read it straight will be quick
+            ch1_volts = self.get_wave_info(1)[1]
             ch2_volts = volt_range[i]
             self.set_ch1_volts(ch1_volts)
             self.set_ch2_volts(ch2_volts)
