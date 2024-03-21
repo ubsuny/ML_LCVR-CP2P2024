@@ -1,5 +1,5 @@
 from ADCDifferentialPi import ADCDifferentialPi as adc
-from time import sleep
+import time
 import numpy as np
 import pyvisa
 rm = pyvisa.ResourceManager('@py')
@@ -7,7 +7,7 @@ sdg = rm.open_resource('USB0::62700::4354::SDG2XCAD5R3372::0::INSTR')
 
 class lcvr_learning:
     
-    def __init__(i2c1,i2c2,input_channel = 1, sample_rate = 18, funcgen = sdg):
+    def __init__(self,i2c1,i2c2,input_channel = 1, sample_rate = 18, funcgen = sdg):
         """Initializes the object
 
         Args:
@@ -34,14 +34,14 @@ class lcvr_learning:
     
     def set_ch1_volts(self,voltage):
 
-        if float(voltage) < 20.0:
+        if float(voltage) <= 20.0:
             self.funcgen.write("C1:BSWV AMP,  "+ str(voltage))
         else:
             raise("VOLTAGE CANNOT EXCEED 20 V LEST YOU HARM THE LCVR'S")
     
     def set_ch2_volts(self,voltage):
 
-        if float(voltage) < 20.0:
+        if float(voltage) <= 20.0:
             self.funcgen.write("C2:BSWV AMP,  "+ str(voltage))
         else:
             raise("VOLTAGE CANNOT EXCEED 20 V LEST YOU HARM THE LCVR'S")
@@ -108,25 +108,39 @@ class lcvr_learning:
             else:
                 break
 
-        if waveInfo1[freqIndex + 4:freqIndex + 8] != "2000":
-            self.funcgen.write("C1:FRQ, 2000")
-            print("WARNING: INCORRECT FREQUENCY, MUST BE 2 kHz")
-            raise SystemExit
-        if float(waveInfo1[voltIndexStart+4:voltIndexEnd]) > 20.0:
-            self.funcgen.write("C1:AMP 1")
-            print("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 20 V")
-            raise SystemExit
-        
-        if waveInfo2[freqIndex + 4:freqIndex + 8] != "2000":
-            self.funcgen.write("C2:FRQ, 2000")
-            print("WARNING: INCORRECT FREQUENCY, MUST BE 2 kHz")
-            raise SystemExit
-        if float(waveInfo2[voltIndexStart+4:voltIndexEnd]) > 20.0:
-            self.funcgen.write("C2:AMP 1")
-            print("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 20 V")
-            raise SystemExit
-        
+        freqIndex1 = waveInfo1.find("FRQ")
+        voltIndexStart1 = waveInfo1.find("AMP")
+        voltIndexEnd1 = waveInfo1.find("V,AMPVRMS")
+        freqIndex2 = waveInfo2.find("FRQ")
+        voltIndexStart2 = waveInfo2.find("AMP")
+        voltIndexEnd2 = waveInfo2.find("V,AMPVRMS")
 
+        if waveInfo1[freqIndex1 + 4:freqIndex1 + 8] != "2000":
+            self.funcgen.write("C1:BSWV FRQ, 2000")
+            print("WARNING: INCORRECT FREQUENCY, MUST BE 2 kHz")
+            raise SystemExit
+        if float(waveInfo1[voltIndexStart1+4:voltIndexEnd1]) > 20.0:
+            self.funcgen.write("C1:BSWV AMP, 1")
+            print("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 20 V")
+            raise SystemExit
+        
+        if waveInfo2[freqIndex2 + 4:freqIndex2 + 8] != "2000":
+            self.funcgen.write("C2:BSWV FRQ, 2000")
+            print("WARNING: INCORRECT FREQUENCY, MUST BE 2 kHz")
+            raise SystemExit
+        if float(waveInfo2[voltIndexStart2+4:voltIndexEnd2]) > 20.0:
+            self.funcgen.write("C2:BSWV AMP, 1")
+            print("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 20 V")
+            raise SystemExit
+        
+    def outputs_on(self):
+        self.check_params()
+        self.funcgen.write("C1:OUTP ON")
+        self.funcgen.write("C2:OUTP ON")
+
+    def outputs_off(self):
+        self.funcgen.write("C1:OUTP OFF")
+        self.funcgen.write("C2:OUTP OFF")
     
     def get_training_data(self, num_iterations):
 
@@ -135,11 +149,12 @@ class lcvr_learning:
         print("Starting training data scan. Don't touch anything please")
 
         # First check to make sure the parameters are in a safe range, then set voltage to a low value on both
-        self.check_params()
         self.set_ch1_volts(1)
         self.set_ch2_volts(1)
+        self.outputs_on()
         
-        volt_range = np.linspace(0,20,realnum)
+        volt_range = np.linspace(0,20,realnum) #MAX VOLTAGE IS 20 V!
+        delay = .05 #Based on response time of LCVR and *SLEW RATE OF FUNCTION GENERATOR*! Check this in data sheet
 
 
         # Now iterate across a wide range of voltage configs for channel 1 and 2 to record training data
@@ -151,10 +166,12 @@ class lcvr_learning:
         #This could be its own function maybe? Then call it 4 times
         #First keep ch2 constant and iterate over ch1
         for i in range(realnum):
-            time.sleep(.03)
+            self.check_params()
             ch1_volts = volt_range[i]
             ch2_volts = 1 #I know this is bad. Probably should just implement a function to read it straight will be quick
             self.set_ch1_volts(ch1_volts)
+            self.set_ch2_volts(ch2_volts)
+            time.sleep(delay)
             new_row = {'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage}
             trainingdata.append(new_row)
 
@@ -162,30 +179,41 @@ class lcvr_learning:
 
         #Now ch1 constant iterate over ch2
         for i in range(realnum):
-            time.sleep(.03)
+            self.check_params()
             ch1_volts = 1 #I know this is bad. Probably should just implement a function to read it straight will be quick
             ch2_volts = volt_range[i]
+            self.set_ch1_volts(ch1_volts)
             self.set_ch2_volts(ch2_volts)
+            time.sleep(delay)
             new_row = {'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage}
             trainingdata.append(new_row)
         
         #Now both increasing together
         for i in range(realnum):
-            time.sleep(.03)
+            self.check_params()
             ch1_volts = volt_range[i]
             ch2_volts = volt_range[i]
+            self.set_ch1_volts(ch1_volts)
             self.set_ch2_volts(ch2_volts)
+            time.sleep(delay)
             new_row = {'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage}
             trainingdata.append(new_row)
 
         #Now opposite directions
         for i in range(realnum):
-            time.sleep(.03)
+            self.check_params()
             ch1_volts = volt_range[i]
             ch2_volts = volt_range[len(volt_range) - i - 1]
+            self.set_ch1_volts(ch1_volts)
             self.set_ch2_volts(ch2_volts)
+            time.sleep(delay)
             new_row = {'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage}
             trainingdata.append(new_row)
+
+        self.outputs_off()
+        self.set_ch1_volts(1)
+        self.set_ch2_volts(1)
+
 
         trainingdataframe = pd.DataFrame(trainingdata)
 
