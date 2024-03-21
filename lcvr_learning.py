@@ -32,7 +32,7 @@ class lcvr_learning:
 
         return self.signal.read_voltage(self.input_channel)
     
-    def get_wave_info(self,int(channel))
+    def get_wave_info(self,int(channel)):
         """
         Gets output wave info in a way that's slightly less annoying than using SCPI
 
