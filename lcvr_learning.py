@@ -105,25 +105,31 @@ class lcvr_learning:
         self.funcgen.write("C1:OUTP OFF")
         self.funcgen.write("C2:OUTP OFF")
 
-    def set_input_volts(self,channel: int, target_volts):
+    def set_input_volts(self,target_volts,channel: int):
         self.outputs_off()
 
-        if float(voltage) > 20.0:
+        if float(target_volts) > 20.0:
             raise("VOLTAGE CANNOT EXCEED 20 V LEST YOU HARM THE LCVR'S")
 
         current_volts = self.get_wave_info(channel)[1]
         delta = target_volts - current_volts
-        center = current_volts + delta
+        center = current_volts + (delta/2)
 
         #There's gotta be a way to shorten this?
-        if target_volts > current_volts:
-            lcvrs.funcgen.write("C"+str(channel)+":ARWV INDEX, 8 C"+str(channel)+":BSWV AMP, " + str(delta) + " C"+str(channel)+":BSWV OFST, "+ str(center)) #Upramp
+        if delta > 0:
+            self.funcgen.write("C"+str(channel)+":ARWV INDEX, 8") 
+            self.funcgen.write("C"+str(channel)+":BSWV AMP, " + str(delta))
+            self.funcgen.write("C"+str(channel)+":BSWV OFST, "+ str(center)) #Upramp
         else:
-            lcvrs.funcgen.write("C"+str(channel)+":ARWV INDEX, 8 C"+str(channel)+":BSWV AMP, " + str(delta) + " C"+str(channel)+":BSWV OFST, "+ str(center)) #downramp
-
+            self.funcgen.write("C"+str(channel)+":ARWV INDEX, 9") #Downramp 
+            self.funcgen.write("C"+str(channel)+":BSWV AMP, " + str(abs(delta)))
+            self.funcgen.write("C"+str(channel)+":BSWV OFST, "+ str(center))
+        
         time.sleep(3)
-        lcvrs.funcgen.write("C"+str(channel)+":BSWV WVTP, SQUARE C"+str(channel)+":BSWV AMP, " + str(target_volts) + " C"+str(channel)+":BSWV OFST, 0")
-    
+        self.funcgen.write("C"+str(channel)+":BSWV WVTP, SQUARE") 
+        self.funcgen.write("C"+str(channel)+":BSWV AMP, " + str(target_volts))
+        self.funcgen.write("C"+str(channel)+":BSWV OFST, 0")
+
     def get_training_data(self, num_iterations: int, wavelength):
         """
             Generates training data by scanning a range of input voltages for each lcvr and measuring the
