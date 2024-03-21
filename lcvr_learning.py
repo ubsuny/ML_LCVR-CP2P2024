@@ -145,8 +145,8 @@ class lcvr_learning:
         delay = 1 #Based on response time of LCVR and *SLEW RATE OF FUNCTION GENERATOR*! Check this in data sheet
 
         # First check to make sure the parameters are in a safe range, then set voltage to a low value on both
-        self.set_ch1_volts(min_volt)
-        self.set_ch2_volts(min_volt)
+        self.set_input_volts(min_volt,1)
+        self.set_input_volts(min_volt,2)
         self.outputs_on()
         time.sleep(delay)
 
@@ -163,13 +163,13 @@ class lcvr_learning:
             self.check_params()
             ch1_volts = volt_range[i]
             ch2_volts = self.get_wave_info(2)[1]
-            self.set_ch1_volts(ch1_volts)
-            self.set_ch2_volts(ch2_volts)
+            self.set_input_volts(ch1_volts,1)
+            self.set_input_volts(ch2_volts,2)
             time.sleep(delay)
             new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage()}
             trainingdata.append(new_row)
 
-        self.set_ch1_volts(min_volt)
+        self.set_input_volts(min_volt,1)
         time.sleep(delay)
 
         #Now ch1 constant iterate over ch2
@@ -177,8 +177,8 @@ class lcvr_learning:
             self.check_params()
             ch1_volts = self.get_wave_info(1)[1]
             ch2_volts = volt_range[i]
-            self.set_ch1_volts(ch1_volts)
-            self.set_ch2_volts(ch2_volts)
+            self.set_input_volts(ch1_volts,1)
+            self.set_input_volts(ch2_volts,2)
             time.sleep(delay)
             new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage()}
             trainingdata.append(new_row)
@@ -188,8 +188,8 @@ class lcvr_learning:
             self.check_params()
             ch1_volts = volt_range[i]
             ch2_volts = volt_range[i]
-            self.set_ch1_volts(ch1_volts)
-            self.set_ch2_volts(ch2_volts)
+            self.set_input_volts(ch1_volts,1)
+            self.set_input_volts(ch2_volts,2)
             time.sleep(delay)
             new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage()}
             trainingdata.append(new_row)
@@ -199,15 +199,15 @@ class lcvr_learning:
             self.check_params()
             ch1_volts = volt_range[i]
             ch2_volts = volt_range[len(volt_range) - i - 1]
-            self.set_ch1_volts(ch1_volts)
-            self.set_ch2_volts(ch2_volts)
+            self.set_input_volts(ch1_volts,1)
+            self.set_input_volts(ch2_volts,2)
             time.sleep(delay)
             new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage()}
             trainingdata.append(new_row)
 
         self.outputs_off()
-        self.set_ch1_volts(min_volt)
-        self.set_ch2_volts(min_volt)
+        self.set_input_volts(min_volt,1)
+        self.set_input_volts(min_volt,2)
 
 
         trainingdataframe = pd.DataFrame(trainingdata)
