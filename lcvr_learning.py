@@ -67,14 +67,6 @@ class lcvr_learning:
         volt = float(waveInfo[voltIndexStart+4:voltIndexEnd])
     
         return freq, volt
-
-
-    def set_input_volts(self,voltage,channel : int):
-
-        if float(voltage) <= 20.0:
-            self.funcgen.write("C" + str(channel) + ":BSWV AMP,  "+ str(voltage))
-        else:
-            raise("VOLTAGE CANNOT EXCEED 20 V LEST YOU HARM THE LCVR'S")
     
         
     def check_params(self):
@@ -113,14 +105,24 @@ class lcvr_learning:
         self.funcgen.write("C1:OUTP OFF")
         self.funcgen.write("C2:OUTP OFF")
 
-    def sweep_change(self,channel: int,voltage):
+    def set_input_volts(self,channel: int, target_volts):
         self.outputs_off()
 
-        #volt_change = get
+        if float(voltage) > 20.0:
+            raise("VOLTAGE CANNOT EXCEED 20 V LEST YOU HARM THE LCVR'S")
 
-        lcvrs.funcgen.write("C1:ARWV INDEX, 8")
-        lcvrs.funcgen.write("C1:BSWV AMP, 4")
-        lcvrs.funcgen.write("C1:BSWV OFST, 2")
+        current_volts = self.get_wave_info(channel)[1]
+        delta = target_volts - current_volts
+        center = current_volts + delta
+
+        #There's gotta be a way to shorten this?
+        if target_volts > current_volts:
+            lcvrs.funcgen.write("C"+str(channel)+":ARWV INDEX, 8 C"+str(channel)+":BSWV AMP, " + str(delta) + " C"+str(channel)+":BSWV OFST, "+ str(center)) #Upramp
+        else:
+            lcvrs.funcgen.write("C"+str(channel)+":ARWV INDEX, 8 C"+str(channel)+":BSWV AMP, " + str(delta) + " C"+str(channel)+":BSWV OFST, "+ str(center)) #downramp
+
+        time.sleep(3)
+        lcvrs.funcgen.write("C"+str(channel)+":BSWV WVTP, SQUARE C"+str(channel)+":BSWV AMP, " + str(target_volts) + " C"+str(channel)+":BSWV OFST, 0")
     
     def get_training_data(self, num_iterations: int, wavelength):
         """
