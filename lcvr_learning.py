@@ -36,7 +36,7 @@ class lcvr_learning:
 
         return self.signal.read_voltage(self.input_channel)
     
-    def get_wave_info(self,int(channel)):
+    def get_wave_info(self, channel: int):
         """
         Gets output wave info in a way that's slightly less annoying than using SCPI
 
@@ -130,7 +130,7 @@ class lcvr_learning:
         self.outputs_on()
         
         volt_range = np.linspace(0,20,realnum) #MAX VOLTAGE IS 20 V!
-        delay = .05 #Based on response time of LCVR and *SLEW RATE OF FUNCTION GENERATOR*! Check this in data sheet
+        delay = 1 #Based on response time of LCVR and *SLEW RATE OF FUNCTION GENERATOR*! Check this in data sheet
 
 
         # Now iterate across a wide range of voltage configs for channel 1 and 2 to record training data
