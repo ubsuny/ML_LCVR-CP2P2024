@@ -24,6 +24,10 @@ class lcvr_learning:
         self.funcgen = funcgen
         self.funcgen.write("C1:BSWV WVTP, SQUARE")
         self.funcgen.write("C1:BSWV FRQ, 2000") # Wave must be 2000 Hz Square wave, no exceptions
+        self.funcgen.write("C1:BSWV AMP, 1")
+        self.funcgen.write("C2:BSWV WVTP, SQUARE")
+        self.funcgen.write("C2:BSWV FRQ, 2000")
+        self.funcgen.write("C2:BSWV AMP, 1")
 
     def get_voltage(self):
         """
