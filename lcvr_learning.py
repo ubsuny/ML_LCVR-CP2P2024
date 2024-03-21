@@ -2,6 +2,7 @@ from ADCDifferentialPi import ADCDifferentialPi as adc
 import time
 import numpy as np
 import pyvisa
+import pandas as pd
 rm = pyvisa.ResourceManager('@py')
 sdg = rm.open_resource('USB0::62700::4354::SDG2XCAD5R3372::0::INSTR')
 
