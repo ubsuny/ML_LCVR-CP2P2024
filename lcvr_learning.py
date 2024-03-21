@@ -133,13 +133,15 @@ class lcvr_learning:
 
         print("Starting training data scan. Don't touch anything please")
 
+        
+        volt_range = np.linspace(0,20,realnum) #MAX VOLTAGE IS 20 V!
+        delay = 1 #Based on response time of LCVR and *SLEW RATE OF FUNCTION GENERATOR*! Check this in data sheet
+
         # First check to make sure the parameters are in a safe range, then set voltage to a low value on both
         self.set_ch1_volts(1)
         self.set_ch2_volts(1)
         self.outputs_on()
-        
-        volt_range = np.linspace(0,20,realnum) #MAX VOLTAGE IS 20 V!
-        delay = 1 #Based on response time of LCVR and *SLEW RATE OF FUNCTION GENERATOR*! Check this in data sheet
+        time.sleep(delay)
 
 
         # Now iterate across a wide range of voltage configs for channel 1 and 2 to record training data
@@ -161,6 +163,7 @@ class lcvr_learning:
             trainingdata.append(new_row)
 
         self.set_ch1_volts(1)
+        time.sleep(delay)
 
         #Now ch1 constant iterate over ch2
         for i in range(realnum):
