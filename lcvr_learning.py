@@ -45,6 +45,47 @@ class lcvr_learning:
             self.funcgen.write("C2:BSWV AMP,  "+ str(voltage))
         else:
             raise("VOLTAGE CANNOT EXCEED 20 V LEST YOU HARM THE LCVR'S")
+    
+    def get_ch1_volts(self):
+        """
+        Returns the input voltage on CH1 as a float
+        """
+        waveInfo = self.funcgen.query("C1:BSWV?")
+
+        # This is weird, but sometimes the function generator returns a null statement
+        # The first char of the proper return is "C", but not for the null
+        while 1 < 2:
+            if waveInfo[0] != "C":
+                waveInfo = self.funcgen.query("C1:BSWV?")
+            else:
+                break
+        
+        voltIndexStart = waveInfo.find("AMP")
+        voltIndexEnd = waveInfo.find("V,AMPVRMS")
+
+
+        return float(waveInfo[voltIndexStart+4:voltIndexEnd])
+        
+
+    def get_ch2_volts(self):
+        """
+        Returns the input voltage on CH1 as a float
+        """
+        waveInfo = self.funcgen.query("C2:BSWV?")
+
+        # This is weird, but sometimes the function generator returns a null statement
+        # The first char of the proper return is "C", but not for the null
+        while 1 < 2:
+            if waveInfo[0] != "C":
+                waveInfo = self.funcgen.query("C1:BSWV?")
+            else:
+                break
+        
+        voltIndexStart = waveInfo.find("AMP")
+        voltIndexEnd = waveInfo.find("V,AMPVRMS")
+
+
+        return float(waveInfo[voltIndexStart+4:voltIndexEnd])
         
     def check_params(self):
         """
@@ -100,12 +141,14 @@ class lcvr_learning:
         
         volt_range = np.linspace(0,20,realnum)
 
+
         # Now iterate across a wide range of voltage configs for channel 1 and 2 to record training data
         # Note response time of LCVR is ~30 ms max, so that limit is hard coded in right now. For speed
         # later there may be ways to lower that (i.e. time how long each step takes  and subtract it so we can save a few
         # ms in case we need to do a lot of iterations?)
         trainingdata = []
-        
+
+        #This could be its own function maybe? Then call it 4 times
         #First keep ch2 constant and iterate over ch1
         for i in range(realnum):
             time.sleep(.03)
