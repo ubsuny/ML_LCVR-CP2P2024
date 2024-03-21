@@ -128,10 +128,10 @@ class lcvr_learning:
         min_volt = 1
         volt_range = np.linspace(min_volt,20,realnum) #MAX VOLTAGE IS 20 V!
 
-        if volt_range[2] - volt_range[1] > .25:
-            raise SystemExit("Slew rate of function generator exceeded. Please use a higher step count")
+        #if volt_range[2] - volt_range[1] > .25:
+        #    raise SystemExit("Slew rate of function generator exceeded. Please use a higher step count")
 
-        delay = 1 #Based on response time of LCVR and *SLEW RATE OF FUNCTION GENERATOR*! Check this in data sheet
+        delay = .05 #Based on response time of LCVR, which is around 30 ms. Right now 50 for safety/accuracy
 
         # First check to make sure the parameters are in a safe range, then set voltage to a low value on both
         self.set_input_volts(min_volt,1)
