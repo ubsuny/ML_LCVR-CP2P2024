@@ -140,7 +140,7 @@ class lcvr_learning:
         for i in range(realnum):
             self.check_params()
             ch1_volts = volt_range[i]
-            ch2_volts = 1 #I know this is bad. Probably should just implement a function to read it straight will be quick
+            ch2_volts = self.get_wave_info(2)[1]
             self.set_ch1_volts(ch1_volts)
             self.set_ch2_volts(ch2_volts)
             time.sleep(delay)
@@ -152,7 +152,7 @@ class lcvr_learning:
         #Now ch1 constant iterate over ch2
         for i in range(realnum):
             self.check_params()
-            ch1_volts = 1 #I know this is bad. Probably should just implement a function to read it straight will be quick
+            ch1_volts = self.get_wave_info(1)[1]
             ch2_volts = volt_range[i]
             self.set_ch1_volts(ch1_volts)
             self.set_ch2_volts(ch2_volts)
