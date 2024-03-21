@@ -32,6 +32,37 @@ class lcvr_learning:
 
         return self.signal.read_voltage(self.input_channel)
     
+    def get_wave_info(self,int(channel))
+        """
+        Gets output wave info in a way that's slightly less annoying than using SCPI
+
+        Args:
+            channel: Channel number, should be 1 or 2 for Siglent 2042x
+        
+        Returns:
+            freq: Frequency (in Hz)
+            amp: Amplitude (in V)
+        """
+    
+        waveInfo = self.funcgen.query("C" + str(channel) + ":BSWV?")
+
+        # This is weird, but sometimes the function generator returns a null statement
+        # The first char of the proper return is "C", but not for the null
+        while 1 < 2:
+            if waveInfo[0] != "C":
+                waveInfo = self.funcgen.query("C" + str(channel) + ":BSWV?")
+            else:
+                break
+        
+        voltIndexStart = waveInfo.find("AMP")
+        voltIndexEnd = waveInfo.find("V,AMPVRMS")
+        freqIndex = waveInfo.find("FRQ")
+    
+        freq = float(waveInfo[freqIndex2 + 4:freqIndex2 + 8])
+        volt = float(waveInfo[voltIndexStart+4:voltIndexEnd])
+    
+        return freq, volt
+    
     def set_ch1_volts(self,voltage):
 
         if float(voltage) <= 20.0:
@@ -46,46 +77,6 @@ class lcvr_learning:
         else:
             raise("VOLTAGE CANNOT EXCEED 20 V LEST YOU HARM THE LCVR'S")
     
-    def get_ch1_volts(self):
-        """
-        Returns the input voltage on CH1 as a float
-        """
-        waveInfo = self.funcgen.query("C1:BSWV?")
-
-        # This is weird, but sometimes the function generator returns a null statement
-        # The first char of the proper return is "C", but not for the null
-        while 1 < 2:
-            if waveInfo[0] != "C":
-                waveInfo = self.funcgen.query("C1:BSWV?")
-            else:
-                break
-        
-        voltIndexStart = waveInfo.find("AMP")
-        voltIndexEnd = waveInfo.find("V,AMPVRMS")
-
-
-        return float(waveInfo[voltIndexStart+4:voltIndexEnd])
-        
-
-    def get_ch2_volts(self):
-        """
-        Returns the input voltage on CH1 as a float
-        """
-        waveInfo = self.funcgen.query("C2:BSWV?")
-
-        # This is weird, but sometimes the function generator returns a null statement
-        # The first char of the proper return is "C", but not for the null
-        while 1 < 2:
-            if waveInfo[0] != "C":
-                waveInfo = self.funcgen.query("C1:BSWV?")
-            else:
-                break
-        
-        voltIndexStart = waveInfo.find("AMP")
-        voltIndexEnd = waveInfo.find("V,AMPVRMS")
-
-
-        return float(waveInfo[voltIndexStart+4:voltIndexEnd])
         
     def check_params(self):
         """
@@ -93,29 +84,8 @@ class lcvr_learning:
         2 kHz, < 20 V square waves. Should do nothing if all is good, but the idea is just to have a function to call that
         will be able to periodically check that the operating conditions are good.
         """
-        waveInfo1 = self.funcgen.query("C1:BSWV?")
-        waveInfo2 = self.funcgen.query("C2:BSWV?")
 
-        while 1 < 2:
-            if waveInfo1[0] != "C":
-                waveInfo1 = self.funcgen.query("C1:BSWV?")
-            else:
-                break
-
-        while 1 < 2:
-            if waveInfo2[0] != "C":
-                waveInfo2 = self.funcgen.query("C2:BSWV?")
-            else:
-                break
-
-        freqIndex1 = waveInfo1.find("FRQ")
-        voltIndexStart1 = waveInfo1.find("AMP")
-        voltIndexEnd1 = waveInfo1.find("V,AMPVRMS")
-        freqIndex2 = waveInfo2.find("FRQ")
-        voltIndexStart2 = waveInfo2.find("AMP")
-        voltIndexEnd2 = waveInfo2.find("V,AMPVRMS")
-
-        if waveInfo1[freqIndex1 + 4:freqIndex1 + 8] != "2000":
+        if waveInfo1[freqIndex1 + 4:freqIndex1 + 8] != 2000.0:
             self.funcgen.write("C1:BSWV FRQ, 2000")
             print("WARNING: INCORRECT FREQUENCY, MUST BE 2 kHz")
             raise SystemExit
