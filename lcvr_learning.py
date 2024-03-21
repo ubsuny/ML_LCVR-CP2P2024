@@ -88,8 +88,8 @@ class lcvr_learning:
         2 kHz, < 20 V square waves. Should do nothing if all is good, but the idea is just to have a function to call that
         will be able to periodically check that the operating conditions are good.
         """
-        freq1, volt1 = get_wave_info(1)
-        freq2, volt2 = get_wave_info(2)
+        freq1, volt1 = self.get_wave_info(1)
+        freq2, volt2 = self.get_wave_info(2)
 
         if freq1 != 2000.0:
             self.funcgen.write("C1:BSWV FRQ, 2000")
