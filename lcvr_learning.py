@@ -119,7 +119,15 @@ class lcvr_learning:
         self.funcgen.write("C1:OUTP OFF")
         self.funcgen.write("C2:OUTP OFF")
     
-    def get_training_data(self, num_iterations):
+    def get_training_data(self, num_iterations: int, wavelength):
+        """
+            Generates training data by scanning a range of input voltages for each lcvr and measuring the
+            differential output signal from the photodetectors
+
+            Args:
+                num_iterations: Number of times you wish to iterate. More = better quality data
+                wavelength: Input wavelength for given set. Necessary for 3D fitting
+        """
 
         realnum = int(num_iterations/4)
 
@@ -149,7 +157,7 @@ class lcvr_learning:
             self.set_ch1_volts(ch1_volts)
             self.set_ch2_volts(ch2_volts)
             time.sleep(delay)
-            new_row = {'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage}
+            new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage()}
             trainingdata.append(new_row)
 
         self.set_ch1_volts(1)
@@ -162,7 +170,7 @@ class lcvr_learning:
             self.set_ch1_volts(ch1_volts)
             self.set_ch2_volts(ch2_volts)
             time.sleep(delay)
-            new_row = {'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage}
+            new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage()}
             trainingdata.append(new_row)
         
         #Now both increasing together
@@ -173,7 +181,7 @@ class lcvr_learning:
             self.set_ch1_volts(ch1_volts)
             self.set_ch2_volts(ch2_volts)
             time.sleep(delay)
-            new_row = {'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage}
+            new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage()}
             trainingdata.append(new_row)
 
         #Now opposite directions
@@ -184,7 +192,7 @@ class lcvr_learning:
             self.set_ch1_volts(ch1_volts)
             self.set_ch2_volts(ch2_volts)
             time.sleep(delay)
-            new_row = {'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage}
+            new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage()}
             trainingdata.append(new_row)
 
         self.outputs_off()
