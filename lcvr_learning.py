@@ -67,18 +67,12 @@ class lcvr_learning:
         volt = float(waveInfo[voltIndexStart+4:voltIndexEnd])
     
         return freq, volt
-    
-    def set_ch1_volts(self,voltage):
+
+
+    def set_input_volts(self,voltage,channel : int):
 
         if float(voltage) <= 20.0:
-            self.funcgen.write("C1:BSWV AMP,  "+ str(voltage))
-        else:
-            raise("VOLTAGE CANNOT EXCEED 20 V LEST YOU HARM THE LCVR'S")
-    
-    def set_ch2_volts(self,voltage):
-
-        if float(voltage) <= 20.0:
-            self.funcgen.write("C2:BSWV AMP,  "+ str(voltage))
+            self.funcgen.write("C" + str(channel) + ":BSWV AMP,  "+ str(voltage))
         else:
             raise("VOLTAGE CANNOT EXCEED 20 V LEST YOU HARM THE LCVR'S")
     
@@ -118,6 +112,15 @@ class lcvr_learning:
     def outputs_off(self):
         self.funcgen.write("C1:OUTP OFF")
         self.funcgen.write("C2:OUTP OFF")
+
+    def sweep_change(self,channel: int,voltage):
+        self.outputs_off()
+
+        #volt_change = get
+
+        lcvrs.funcgen.write("C1:ARWV INDEX, 8")
+        lcvrs.funcgen.write("C1:BSWV AMP, 4")
+        lcvrs.funcgen.write("C1:BSWV OFST, 2")
     
     def get_training_data(self, num_iterations: int, wavelength):
         """
@@ -133,13 +136,17 @@ class lcvr_learning:
 
         print("Starting training data scan. Don't touch anything please")
 
-        
-        volt_range = np.linspace(0,20,realnum) #MAX VOLTAGE IS 20 V!
+        min_volt = 1
+        volt_range = np.linspace(min_volt,20,realnum) #MAX VOLTAGE IS 20 V!
+
+        if volt_range[2] - volt_range[1] > .25:
+            raise SystemExit("Slew rate of function generator exceeded. Please use a higher step count")
+
         delay = 1 #Based on response time of LCVR and *SLEW RATE OF FUNCTION GENERATOR*! Check this in data sheet
 
         # First check to make sure the parameters are in a safe range, then set voltage to a low value on both
-        self.set_ch1_volts(1)
-        self.set_ch2_volts(1)
+        self.set_ch1_volts(min_volt)
+        self.set_ch2_volts(min_volt)
         self.outputs_on()
         time.sleep(delay)
 
@@ -162,7 +169,7 @@ class lcvr_learning:
             new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Out': self.get_voltage()}
             trainingdata.append(new_row)
 
-        self.set_ch1_volts(1)
+        self.set_ch1_volts(min_volt)
         time.sleep(delay)
 
         #Now ch1 constant iterate over ch2
@@ -199,8 +206,8 @@ class lcvr_learning:
             trainingdata.append(new_row)
 
         self.outputs_off()
-        self.set_ch1_volts(1)
-        self.set_ch2_volts(1)
+        self.set_ch1_volts(min_volt)
+        self.set_ch2_volts(min_volt)
 
 
         trainingdataframe = pd.DataFrame(trainingdata)
