@@ -107,7 +107,7 @@ class lcvr_learning:
 
     def set_input_volts(self,target_volts,channel:int):
         current_volts = self.get_wave_info(channel)[1]
-        change_range = np.linspace(current_volts,target_volts,50)
+        change_range = np.linspace(current_volts,target_volts,3)
         for i in range(len(change_range)):
             self.funcgen.write("C"+str(channel)+":BSWV AMP, " + str(change_range[i]))
 
@@ -128,8 +128,6 @@ class lcvr_learning:
         min_volt = 1
         volt_range = np.linspace(min_volt,20,realnum) #MAX VOLTAGE IS 20 V!
 
-        #if volt_range[2] - volt_range[1] > .25:
-        #    raise SystemExit("Slew rate of function generator exceeded. Please use a higher step count")
 
         delay = .05 #Based on response time of LCVR, which is around 30 ms. Right now 50 for safety/accuracy
 
