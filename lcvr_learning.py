@@ -84,21 +84,23 @@ class lcvr_learning:
         2 kHz, < 20 V square waves. Should do nothing if all is good, but the idea is just to have a function to call that
         will be able to periodically check that the operating conditions are good.
         """
+        freq1, volt1 = get_wave_info(1)
+        freq2, volt2 = get_wave_info(2)
 
-        if waveInfo1[freqIndex1 + 4:freqIndex1 + 8] != 2000.0:
+        if freq1 != 2000.0:
             self.funcgen.write("C1:BSWV FRQ, 2000")
             print("WARNING: INCORRECT FREQUENCY, MUST BE 2 kHz")
             raise SystemExit
-        if float(waveInfo1[voltIndexStart1+4:voltIndexEnd1]) > 20.0:
+        if volt1 > 20.0:
             self.funcgen.write("C1:BSWV AMP, 1")
             print("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 20 V")
             raise SystemExit
         
-        if waveInfo2[freqIndex2 + 4:freqIndex2 + 8] != "2000":
+        if freq2 != "2000":
             self.funcgen.write("C2:BSWV FRQ, 2000")
             print("WARNING: INCORRECT FREQUENCY, MUST BE 2 kHz")
             raise SystemExit
-        if float(waveInfo2[voltIndexStart2+4:voltIndexEnd2]) > 20.0:
+        if volt2 > 20.0:
             self.funcgen.write("C2:BSWV AMP, 1")
             print("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 20 V")
             raise SystemExit
