@@ -82,18 +82,18 @@ class lcvr_learning:
             self.funcgen.write("C1:BSWV FRQ, 2000")
             print("WARNING: INCORRECT FREQUENCY, MUST BE 2 kHz")
             raise SystemExit
-        if volt1 > 20.0:
+        if volt1 > 10.0:
             self.funcgen.write("C1:BSWV AMP, 1")
-            print("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 20 V")
+            print("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 10 V")
             raise SystemExit
         
         if freq2 != 2000.0:
             self.funcgen.write("C2:BSWV FRQ, 2000")
             print("WARNING: INCORRECT FREQUENCY, MUST BE 2 kHz")
             raise SystemExit
-        if volt2 > 20.0:
+        if volt2 > 10.0:
             self.funcgen.write("C2:BSWV AMP, 1")
-            print("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 20 V")
+            print("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 10 V")
             raise SystemExit
         
     def outputs_on(self):
@@ -126,7 +126,7 @@ class lcvr_learning:
         print("Starting training data scan. Don't touch anything please")
 
         min_volt = 1
-        volt_range = np.linspace(min_volt,20,realnum) #MAX VOLTAGE IS 20 V!
+        volt_range = np.linspace(min_volt,4,realnum) #Retardance greatly diminished by ~5 V
 
 
         delay = .05 #Based on response time of LCVR, which is around 30 ms. Right now 50 for safety/accuracy
