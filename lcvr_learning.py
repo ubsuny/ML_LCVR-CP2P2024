@@ -125,7 +125,7 @@ class lcvr_learning:
 
         print("Starting training data scan. Don't touch anything please")
 
-        min_volt = 1
+        min_volt = .05
         volt_range = np.linspace(min_volt,4,realnum) #Retardance greatly diminished by ~5 V
 
 
