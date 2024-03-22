@@ -129,7 +129,7 @@ class lcvr_learning:
         volt_range = np.linspace(min_volt,4,realnum) #Retardance greatly diminished by ~5 V
 
 
-        delay = .05 #Based on response time of LCVR, which is around 30 ms. Right now 50 for safety/accuracy
+        delay = .06 #Based on response time of LCVR, which is around 30 ms, and ADC sampling rate which is ~18 Hz
 
         # First check to make sure the parameters are in a safe range, then set voltage to a low value on both
         self.set_input_volts(min_volt,1)
