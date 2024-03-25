@@ -111,7 +111,7 @@ class lcvr_learning:
         for i in range(len(change_range)):
             self.funcgen.write("C"+str(channel)+":BSWV AMP, " + str(change_range[i]))
 
-    def get_training_data(self, num_iterations: int, wavelength):
+    def get_training_data(self, num_iterations: int, wavelength,gain = 1):
         """
             Generates training data by scanning a range of input voltages for each lcvr and measuring the
             differential output signal from the photodetectors
@@ -119,6 +119,7 @@ class lcvr_learning:
             Args:
                 num_iterations: Number of times you wish to iterate. More = better quality data
                 wavelength: Input wavelength for given set. Necessary for 3D fitting
+                gain = gain factor on the ADC
         """
 
         realnum = int(num_iterations/4)
