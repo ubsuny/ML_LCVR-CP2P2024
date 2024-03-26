@@ -110,6 +110,7 @@ class lcvr_learning:
         change_range = np.linspace(current_volts,target_volts,3)
         for i in range(len(change_range)):
             self.funcgen.write("C"+str(channel)+":BSWV AMP, " + str(change_range[i]))
+        self.outputs_on()
 
     def get_training_data(self, num_iterations: int, wavelength,gain = 1):
         """
