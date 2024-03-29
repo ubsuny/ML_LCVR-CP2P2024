@@ -8,7 +8,7 @@ It's a well known fact that, classically speaking, light travels as a wave. More
   <img src="https://upload.wikimedia.org/wikipedia/commons/9/99/EM-Wave.gif" />
 </p>
 
-
+The direction that the electric field points for such a wave is commonly known as the polarization of the wave. This polarization is typically described as an angle between 0 and 90 degrees, representing how much the electric field is "rotated" from the vertical. Coherent light sources such as lasers have a constant, measurable polarization. Due to this, we can also tune the polarization of the source through various means.
 
 
 References:
