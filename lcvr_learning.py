@@ -30,14 +30,14 @@ class lcvr_learning:
         self.funcgen.write("C2:BSWV FRQ, 2000")
         self.funcgen.write("C2:BSWV AMP, 1")
 
-    def get_voltage(self, mode = single):
+    def get_voltage(self, mode = "single"):
         """
         Returns voltage from input channel
 
         Args:
             mode: single or avg. Single returns one reading, avg takes an average to try and account for noisy signals
         """
-        if mode = avg:
+        if mode == "avg":
             num = 20
             reads = []
             for i in range(num):
