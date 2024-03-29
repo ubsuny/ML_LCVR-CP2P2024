@@ -23,7 +23,7 @@ This polarization is unique because the linear polarization is generally unable 
 
 ## Polarizers
 
-The simplest method of tuning the polarization of a light source is through a polarizer. Polarizers act as a "screen" for polarization states, letting only the chosen direction of polarization through. These components are extremely limited however, as they 
+The simplest method of tuning the linear polarization of a light source is through a polarizer. Polarizers act as a "screen" for polarization states, letting only the chosen direction of polarization through. These components are extremely limited however, as they both reduce the intensity of the incident light (potentially to zero!) and can not be used to meaningfully alter the state of circularly polarized light. In general, more advanced components must be used.
 
 ## Wave Plates
 
