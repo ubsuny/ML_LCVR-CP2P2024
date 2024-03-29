@@ -30,12 +30,22 @@ class lcvr_learning:
         self.funcgen.write("C2:BSWV FRQ, 2000")
         self.funcgen.write("C2:BSWV AMP, 1")
 
-    def get_voltage(self):
+    def get_voltage(self, mode = single):
         """
         Returns voltage from input channel
-        """
 
-        return self.signal.read_voltage(self.input_channel)
+        Args:
+            mode: single or avg. Single returns one reading, avg takes an average to try and account for noisy signals
+        """
+        if mode = avg:
+            num = 20
+            reads = []
+            for i in range(num):
+                reads.append(self.signal.read_voltage(self.input_channel))
+            return np.average(reads)
+        else:
+            return self.signal.read_voltage(self.input_channel)
+        
     
     def get_wave_info(self, channel: int):
         """
@@ -155,7 +165,7 @@ class lcvr_learning:
             self.set_input_volts(ch1_volts,1)
             self.set_input_volts(ch2_volts,2)
             time.sleep(delay)
-            new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage()}
+            new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage(mode = avg)}
             trainingdata.append(new_row)
 
         self.set_input_volts(min_volt,1)
@@ -169,7 +179,7 @@ class lcvr_learning:
             self.set_input_volts(ch1_volts,1)
             self.set_input_volts(ch2_volts,2)
             time.sleep(delay)
-            new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage()}
+            new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage(mode = avg)}
             trainingdata.append(new_row)
         
         #Now both increasing together
@@ -180,7 +190,7 @@ class lcvr_learning:
             self.set_input_volts(ch1_volts,1)
             self.set_input_volts(ch2_volts,2)
             time.sleep(delay)
-            new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage()}
+            new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage(mode = avg)}
             trainingdata.append(new_row)
 
         #Now opposite directions
@@ -191,7 +201,7 @@ class lcvr_learning:
             self.set_input_volts(ch1_volts,1)
             self.set_input_volts(ch2_volts,2)
             time.sleep(delay)
-            new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage()}
+            new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage(mode = avg)}
             trainingdata.append(new_row)
 
         self.outputs_off()
