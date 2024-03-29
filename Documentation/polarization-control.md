@@ -45,8 +45,19 @@ A Liquid Crystal Variable Retarder (LCVR) is an optical componant with a retarda
 
 Notably, this behavior is not only wavelength dependent, but very nonlinear for each individual wavelength.
 
-Most importantly, a tunable output retardance means that an LCVR essentially functions as a tunable waveplate. One can potentially set any arbitrary polarization for any wavelength with two LCVRs. The only caveat is that LCVRs are sensitive and have a highly nonlinear response, so attaining the desired output polarization can take hours of calibration for a single polarization.
+Most importantly, a tunable output retardance means that an LCVR essentially functions as a tunable waveplate. One can potentially set any arbitrary polarization for any wavelength with two LCVRs. The only caveat is that LCVRs are sensitive and have a highly nonlinear response, so attaining the desired output polarization can take hours of calibration for a single polarization if performed manually.
 
+## Machine Learning for Fast LCVR Calibration
+
+To allow for switching polarizations quickly and reliably, we aim to implement a machine learning algorithm that takes training data on a small number of wavelengths, then creates a model that describes the output polarization response for all wavelengths in which the LCVR is usable. From here, a web interface allows for quick polarization switching where the only known parameter necessary is the wavelength of the input light.
+
+To measure the output polarization from the LCVRs, a differential signal is measured from two photodiodes placed in front of a Wollaston prism that receives the output beam from the LCVRs. The Wollaston prism splits the light into two perpendicularly polarized components, so each photodiode measures an orthogonal component of the polarization. (Diagram to come). This gives us a signal that is robust to noise and measures the difference in signal between the two polarization components, which is easily back calculated into a polarization.
+
+Training data is measured via a sweep over input LCVR voltages in the range of highest response. The
+```Python
+get_training_data()
+```
+function in lcvr_learning.py handles this process. After measuring several wavlengths, this data is fed into a neural network (unfinalized) which models the data and allows the polarization to be arbitrarily selected.
 
 
 References:
