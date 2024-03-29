@@ -27,9 +27,9 @@ This polarization is unique because the linear polarization is generally unable 
 
 The simplest method of tuning the linear polarization of a light source is through a polarizer. Polarizers act as a "screen" for polarization states, letting only the chosen direction of polarization through. These components are extremely limited however, as they both reduce the intensity of the incident light (potentially to zero!) and can not be used to meaningfully alter the state of circularly polarized light. In general, more advanced components must be used.
 
-### Wave Plates
+### Wave Plates  [^3]
 
-A wave plate, also known as a retarder, is a birefrigent material that can be used to convert linearly polarized light to circularly polarized, or vice-versa. This happens by creating a phase difference between the vertical and horizontal components of the polarization. [^3]
+A wave plate, also known as a retarder, is a birefrigent material that can be used to convert linearly polarized light to circularly polarized, or vice-versa. This happens by creating a phase difference between the vertical and horizontal components of the polarization.
 
 Light travels more slowly in a medium with index of refraction n, given by $$c_{medium} = \frac{c_{vacuum}}{n}$$. A birefringent material has different indices of refraction over its vertical and horizontal axes. This means that if we have a vertical index of refraction $n_1$ and a horizontal index of refraction $n_2$, then the difference in velocities for the two components of the wave will be $$\Delta v = \frac{c}{n_1} - \frac{c}{n_2}$$ This means that, for a plate of thickness $d$, the phase difference (or retardance) experienced by the two components will be  $$\Delta \phi = d (\frac{n_1 - n_2}{\lambda})$$ Note the wavelength dependence. This means that we can tune the parameters $d$, $n_1$, and $n_2$ to get the phase difference we desire. For reference, a 90 degree phase difference will correspond to circularly polarized light.
 
@@ -52,4 +52,5 @@ Most importantly, a tunable output retardance means that an LCVR essentially fun
 References:
 [^1]: And1mu, CC BY-SA 4.0 <https://creativecommons.org/licenses/by-sa/4.0>, via Wikimedia Commons
 [^2]: Dave3457, Public domain, via Wikimedia Commons
-[^3}: https://phys.libretexts.org/Bookshelves/Waves_and_Acoustics/The_Physics_of_Waves_(Goergi)/12%3A_Polarization/12.03%3A_Wave_Plates_and_Polarizers
+[^3]: https://phys.libretexts.org/Bookshelves/Waves_and_Acoustics/The_Physics_of_Waves_(Goergi)/12%3A_Polarization/12.03%3A_Wave_Plates_and_Polarizers
+[^4]: https://www.meadowlark.com/liquid-crystal-variable-retarder/
