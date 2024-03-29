@@ -27,11 +27,23 @@ This polarization is unique because the linear polarization is generally unable 
 
 The simplest method of tuning the linear polarization of a light source is through a polarizer. Polarizers act as a "screen" for polarization states, letting only the chosen direction of polarization through. These components are extremely limited however, as they both reduce the intensity of the incident light (potentially to zero!) and can not be used to meaningfully alter the state of circularly polarized light. In general, more advanced components must be used.
 
-### Wave Plates [^3]
+### Wave Plates
 
-A wave plate, also known as a retarder, is a birefrigent material that can be used to convert linearly polarized light to circularly polarized, or vice-versa. This happens by creating a phase difference between the vertical and horizontal components of the polarization.
+A wave plate, also known as a retarder, is a birefrigent material that can be used to convert linearly polarized light to circularly polarized, or vice-versa. This happens by creating a phase difference between the vertical and horizontal components of the polarization. [^3]
 
-Light travels more slowly in a medium with index of refraction n, given by $$c_{medium} = \frac{c_{vacuum}}{n}$$. A birefringent material has different indices of refraction over its vertical and horizontal axes. This means that if we have a vertical index of refraction $n_1$ and a horizontal index of refraction $n_2$, then the difference in velocities for the two components of the wave will be $$\Delta v = \frac{c}{n_1} - \frac{c}{n_2}$$ This means that, for a plate of thickness $d$, the phase difference experienced by the two components will be  $$\Delta \phi = d (\frac{n_1 - n_2}{\lambda})$$ Note the wavelength dependence. This means that we can tune the parameters $d$, $n_1$, and $n_2$ to get the phase difference we desire. For reference, a 90 degree phase difference will correspond to circularly polarized light.
+Light travels more slowly in a medium with index of refraction n, given by $$c_{medium} = \frac{c_{vacuum}}{n}$$. A birefringent material has different indices of refraction over its vertical and horizontal axes. This means that if we have a vertical index of refraction $n_1$ and a horizontal index of refraction $n_2$, then the difference in velocities for the two components of the wave will be $$\Delta v = \frac{c}{n_1} - \frac{c}{n_2}$$ This means that, for a plate of thickness $d$, the phase difference (or retardance) experienced by the two components will be  $$\Delta \phi = d (\frac{n_1 - n_2}{\lambda})$$ Note the wavelength dependence. This means that we can tune the parameters $d$, $n_1$, and $n_2$ to get the phase difference we desire. For reference, a 90 degree phase difference will correspond to circularly polarized light.
+
+It's important to note that a single wave plate is capable of converting circularly polarized light to linearly polarized, or vice versa. That means with two wave plates with the correct specifications, linearly polarized light can be converted to another arbitrary linear polarization with no signal lost. However, the dimensions and birefringence of the waveplates then need to be tuned to the specific application and wavelength.
+
+### Liquid Crystal Variable Retarders (LCVRs)
+
+A Liquid Crystal Variable Retarder (LCVR) is an optical componant with a retardance that is tunable via an input voltage. Since the LCVR is made of a liquid crystal material, where the individual molecules have a dipole moment, an applied AC voltage will cause the molecules to to angle themselves, with a higher voltage corresponding to a higher rotation. This in turn alters the birefringence of the material, and the retardance as a result. Here, we are using the LCVRs from Meadowlark Optics, [^4] which have a retardance v. input voltage at 632.8 nm of the following form
+
+<p align="center">
+  <img src="https://github.com/ubsuny/ML_LCVR-CP2P2024/assets/94491866/d70d3735-3cae-4929-9783-db2b17f0f090" />
+</p>
+
+
 
 References:
 [^1]: And1mu, CC BY-SA 4.0 <https://creativecommons.org/licenses/by-sa/4.0>, via Wikimedia Commons
