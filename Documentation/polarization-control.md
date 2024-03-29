@@ -43,6 +43,10 @@ A Liquid Crystal Variable Retarder (LCVR) is an optical componant with a retarda
   <img src="https://github.com/ubsuny/ML_LCVR-CP2P2024/assets/94491866/d70d3735-3cae-4929-9783-db2b17f0f090" />
 </p>
 
+Notably, this behavior is not only wavelength dependent, but very nonlinear for each individual wavelength.
+
+Most importantly, a tunable output retardance means that an LCVR essentially functions as a tunable waveplate. One can potentially set any arbitrary polarization for any wavelength with two LCVRs. The only caveat is that LCVRs are sensitive and have a highly nonlinear response, so attaining the desired output polarization can take hours of calibration for a single polarization.
+
 
 
 References:
