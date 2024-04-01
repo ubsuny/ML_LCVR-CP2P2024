@@ -127,6 +127,8 @@ class lcvr_learning:
                 num_iterations: Number of times you wish to iterate. More = better quality data
                 wavelength: Input wavelength for given set. Necessary for 3D fitting
                 gain = gain factor on the ADC
+            Returns:
+                trainingdataframe: A pandas dataframe containing the training data
         """
 
         realnum = int(num_iterations/4)
