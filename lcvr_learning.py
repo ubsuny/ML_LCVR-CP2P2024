@@ -90,21 +90,17 @@ class lcvr_learning:
 
         if freq1 != 2000.0:
             self.funcgen.write("C1:BSWV FRQ, 2000")
-            print("WARNING: INCORRECT FREQUENCY, MUST BE 2 kHz")
-            raise SystemExit
+            raise SystemExit("WARNING: INCORRECT FREQUENCY, MUST BE 2 kHz")
         if volt1 > 10.0:
             self.funcgen.write("C1:BSWV AMP, 1")
-            print("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 10 V")
-            raise SystemExit
+            raise SystemExit("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 10 V")
         
         if freq2 != 2000.0:
             self.funcgen.write("C2:BSWV FRQ, 2000")
-            print("WARNING: INCORRECT FREQUENCY, MUST BE 2 kHz")
-            raise SystemExit
+            raise SystemExit("WARNING: INCORRECT FREQUENCY, MUST BE 2 kHz")
         if volt2 > 10.0:
             self.funcgen.write("C2:BSWV AMP, 1")
-            print("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 10 V")
-            raise SystemExit
+            raise SystemExit("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 10 V")
         
     def outputs_on(self):
         self.check_params()
@@ -131,8 +127,10 @@ class lcvr_learning:
                 num_iterations: Number of times you wish to iterate. More = better quality data
                 wavelength: Input wavelength for given set. Necessary for 3D fitting
                 gain = gain factor on the ADC
+            Returns:
+                trainingdataframe: A pandas dataframe containing the training data
         """
-
+        self.signal.set_pga(gain)
         realnum = int(num_iterations/4)
         readmode = "avg"
 
