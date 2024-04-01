@@ -130,7 +130,7 @@ class lcvr_learning:
             Returns:
                 trainingdataframe: A pandas dataframe containing the training data
         """
-
+        self.signal.set_pga(gain)
         realnum = int(num_iterations/4)
         readmode = "avg"
 
