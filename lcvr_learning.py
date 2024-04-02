@@ -132,12 +132,12 @@ class lcvr_learning:
         """
         self.signal.set_pga(gain)
         realnum = int(num_iterations/4)
-        readmode = "avg"
+        readmode = "single"
 
         print("Starting training data scan. Don't touch anything please")
 
-        min_volt = .05
-        volt_range = np.linspace(min_volt,4,realnum) #Retardance greatly diminished by ~5 V
+        min_volt = .6
+        volt_range = np.linspace(min_volt,10,realnum) #Retardance greatly diminished by ~10 V
 
 
         delay = .05 #Based on response time of LCVR, which is around 30 ms, Right now 50 for safety/accuracy
