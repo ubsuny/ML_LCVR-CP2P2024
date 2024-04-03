@@ -232,12 +232,31 @@ class lcvr_learning:
         else:
             raise ValueError("Invalid Scan Mode")
 
-
-        self.outputs_off()
         self.set_input_volts(min_volt,1)
         self.set_input_volts(min_volt,2)
+        self.outputs_off()
 
 
         trainingdataframe = pd.DataFrame(trainingdata)
 
         return trainingdataframe
+    
+    def add_angle(self,training_data):
+        """
+        Adds a column to the output data that represents the output as a polarization angle
+        Maybe put this in get_training_data?
+
+        Args:
+            training_data: Training data from get_training_data (pandas dataframe)
+        
+        Returns:
+            training_data: Training data with Angle column attached
+        
+        """
+
+        range = training_data['Out'].max() - training_data['Out'].min()
+        scale = 90/range
+        offset = abs(training_data['Out'].min())
+        training_data['Angle'] = (training_data['Out'] + offset)*scale
+
+        return training_data
