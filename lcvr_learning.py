@@ -118,7 +118,7 @@ class lcvr_learning:
             self.funcgen.write("C"+str(channel)+":BSWV AMP, " + str(change_range[i]))
         self.outputs_on()
 
-    def get_training_data(self, num_iterations: int, wavelength,gain = 1):
+    def get_training_data(self, num_iterations: int, wavelength,gain = 1,mode = "all",V1 = 0):
         """
             Generates training data by scanning a range of input voltages for each lcvr and measuring the
             differential output signal from the photodetectors
@@ -127,11 +127,12 @@ class lcvr_learning:
                 num_iterations: Number of times you wish to iterate. More = better quality data
                 wavelength: Input wavelength for given set. Necessary for 3D fitting
                 gain = gain factor on the ADC
+                mode: String, can be "all" or "fixed_v1"
+                V1: only needed for fixed_v1 mode, sets constant V1 during scan
             Returns:
                 trainingdataframe: A pandas dataframe containing the training data
         """
         self.signal.set_pga(gain)
-        realnum = int(num_iterations/4)
         readmode = "single"
 
         print("Starting training data scan. Don't touch anything please")
@@ -148,71 +149,92 @@ class lcvr_learning:
         self.outputs_on()
         time.sleep(delay)
 
+        if mode =="all":
+            # Now iterate across a wide range of voltage configs for channel 1 and 2 to record training data
+            # Note response time of LCVR is ~30 ms max, so that limit is hard coded in right now. For speed
+            # later there may be ways to lower that (i.e. time how long each step takes  and subtract it so we can save a few
+            # ms in case we need to do a lot of iterations?)
+            realnum = int(num_iterations/5)
+            volt_range = np.linspace(min_volt,10,realnum)
+            trainingdata = []
 
-        # Now iterate across a wide range of voltage configs for channel 1 and 2 to record training data
-        # Note response time of LCVR is ~30 ms max, so that limit is hard coded in right now. For speed
-        # later there may be ways to lower that (i.e. time how long each step takes  and subtract it so we can save a few
-        # ms in case we need to do a lot of iterations?)
-        trainingdata = []
+            for i in range(realnum):
+                self.check_params()
+                ch1_volts = volt_range[i]
+                ch2_volts = self.get_wave_info(2)[1]
+                self.set_input_volts(ch1_volts,1)
+                self.set_input_volts(ch2_volts,2)
+                time.sleep(delay)
+                new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage(mode = readmode)}
+                trainingdata.append(new_row)
 
-        #This could be its own function maybe? Then call it 4 times
-        #First keep ch2 constant and iterate over ch1
-        for i in range(realnum):
-            self.check_params()
-            ch1_volts = volt_range[i]
-            ch2_volts = self.get_wave_info(2)[1]
-            self.set_input_volts(ch1_volts,1)
-            self.set_input_volts(ch2_volts,2)
+            self.set_input_volts(min_volt,1)
             time.sleep(delay)
-            new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage(mode = readmode)}
-            trainingdata.append(new_row)
 
-        self.set_input_volts(min_volt,1)
-        time.sleep(delay)
+            #Now ch1 constant iterate over ch2
+            for i in range(realnum):
+                self.check_params()
+                ch1_volts = self.get_wave_info(1)[1]
+                ch2_volts = volt_range[i]
+                self.set_input_volts(ch1_volts,1)
+                self.set_input_volts(ch2_volts,2)
+                time.sleep(delay)
+                new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage(mode = readmode)}
+                trainingdata.append(new_row)
+            
+            #Now both increasing together
+            for i in range(realnum):
+                self.check_params()
+                ch1_volts = volt_range[i]
+                ch2_volts = volt_range[i]
+                self.set_input_volts(ch1_volts,1)
+                self.set_input_volts(ch2_volts,2)
+                time.sleep(delay)
+                new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage(mode = readmode)}
+                trainingdata.append(new_row)
 
-        #Now ch1 constant iterate over ch2
-        for i in range(realnum):
-            self.check_params()
-            ch1_volts = self.get_wave_info(1)[1]
-            ch2_volts = volt_range[i]
-            self.set_input_volts(ch1_volts,1)
-            self.set_input_volts(ch2_volts,2)
-            time.sleep(delay)
-            new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage(mode = readmode)}
-            trainingdata.append(new_row)
-        
-        #Now both increasing together
-        for i in range(realnum):
-            self.check_params()
-            ch1_volts = volt_range[i]
-            ch2_volts = volt_range[i]
-            self.set_input_volts(ch1_volts,1)
-            self.set_input_volts(ch2_volts,2)
-            time.sleep(delay)
-            new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage(mode = readmode)}
-            trainingdata.append(new_row)
+            #Now opposite directions
+            for i in range(realnum):
+                self.check_params()
+                ch1_volts = volt_range[i]
+                ch2_volts = volt_range[len(volt_range) - i - 1]
+                self.set_input_volts(ch1_volts,1)
+                self.set_input_volts(ch2_volts,2)
+                time.sleep(delay)
+                new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage(mode = readmode)}
+                trainingdata.append(new_row)
+            
+            #Now other way (order matters so this may be wise)
+            for i in range(realnum):
+                self.check_params()
+                ch1_volts = volt_range[len(volt_range) - i - 1]
+                ch2_volts = volt_range[i]
+                self.set_input_volts(ch1_volts,1)
+                self.set_input_volts(ch2_volts,2)
+                time.sleep(delay)
+                new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage(mode = readmode)}
+                trainingdata.append(new_row)
 
-        #Now opposite directions
-        for i in range(realnum):
-            self.check_params()
-            ch1_volts = volt_range[i]
-            ch2_volts = volt_range[len(volt_range) - i - 1]
-            self.set_input_volts(ch1_volts,1)
-            self.set_input_volts(ch2_volts,2)
-            time.sleep(delay)
-            new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage(mode = readmode)}
-            trainingdata.append(new_row)
-        
-        #Now other way (order matters so this may be wise)
-        for i in range(realnum):
-            self.check_params()
-            ch1_volts = volt_range[len(volt_range) - i - 1]
-            ch2_volts = volt_range[i]
-            self.set_input_volts(ch1_volts,1)
-            self.set_input_volts(ch2_volts,2)
-            time.sleep(delay)
-            new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage(mode = readmode)}
-            trainingdata.append(new_row)
+        # Allows us to scan over an axis with fixed V1. Very useful for single wavelength fitting
+        elif mode == "fixed_v1":
+
+            realnum = int(num_iterations)
+            volt_range = np.linspace(min_volt,10,realnum)
+            trainingdata = []    
+
+            for i in range(realnum):
+                self.check_params()
+                ch1_volts = V1
+                ch2_volts = volt_range[len(volt_range)]
+                self.set_input_volts(ch1_volts,1)
+                self.set_input_volts(ch2_volts,2)
+                time.sleep(delay)
+                new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage(mode = readmode)}
+                trainingdata.append(new_row)
+
+        else:
+            raise ValueError("Invalid Scan Mode")
+
 
         self.outputs_off()
         self.set_input_volts(min_volt,1)
