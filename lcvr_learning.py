@@ -217,13 +217,13 @@ class lcvr_learning:
 
             realnum = int(num_iterations)
             volt_range = np.linspace(min_volt,10,realnum)
-            trainingdata = []    
+            trainingdata = []
+            ch1_volts = v1
+            self.set_input_volts(ch1_volts,1)
 
             for i in range(realnum):
                 self.check_params()
-                ch1_volts = v1
                 ch2_volts = volt_range[i]
-                self.set_input_volts(ch1_volts,1)
                 self.set_input_volts(ch2_volts,2)
                 time.sleep(delay)
                 new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage(mode = readmode)}
