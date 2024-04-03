@@ -221,8 +221,8 @@ class lcvr_learning:
 
             for i in range(realnum):
                 self.check_params()
-                ch1_volts = V1
-                ch2_volts = volt_range[len(volt_range)]
+                ch1_volts = v1
+                ch2_volts = volt_range[i]
                 self.set_input_volts(ch1_volts,1)
                 self.set_input_volts(ch2_volts,2)
                 time.sleep(delay)
