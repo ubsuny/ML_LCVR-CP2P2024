@@ -340,6 +340,7 @@ class optimize_model:
                 best_c = grid_search.best_params_['C']
                 best_gamma = grid_search.best_params_['gamma']
                 c_step = c_step/2
+                gamma_step = gamma_step/2
                 param_grid = {
                 'C': np.linspace(max(0.1, best_c - 2*c_step), best_c + 2*c_step, 5),
                 'gamma': np.linspace(max(0.001, best_gamma - 2*gamma_step), best_gamma + 2*gamma_step, 5)
