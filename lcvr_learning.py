@@ -385,7 +385,7 @@ class optimize_model:
 
         # Need to change measured to an angle
         measured_raw = np.array(measured_raw)
-        range = measured_raw.max() - measured_raw.min()
+        range = np.max(measured_raw) - np.min(measured_raw)
         scale = 90/range
         offset = abs(measured_raw.min())
         measured_angle = (measured_raw + offset)*scale
