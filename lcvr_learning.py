@@ -349,3 +349,38 @@ class optimize_model:
         model = SVR(kernel='rbf', C=input_c, gamma=input_gamma)
 
         return model
+    
+    def calc_rmse(self,model,measurements,v1,v2_low,v2_high):
+        """
+        Finds the RMS error between the model's predictions and actual measurements using random sampling (in real time)
+        of the polarization
+        """
+
+        #Need to initialize the lcvrs for measurement. Note that input channels may change depending on your configuration
+        lcvrs = lcvr_learning(0x6a,0x6b)
+        lcvrs.set_input_volts(v1,1)
+        measured_raw = []
+        predicted = []
+
+        #Generates random V2 values to test the fit against
+        v2_inputs = np.random.rand(measurements) * (v2_high - v2_low) + v2_low
+
+        for input in v2_inputs:
+            lcvrs.set_input_volts(input,2)
+            time.sleep(0.05)
+            predicted.append(model.predict(input))
+            measured_raw.append(lcvrs.get_voltage())
+
+        # Need to change measured to an angle
+        range = measured_raw.max() - measured_raw.min()
+        scale = 90/range
+        offset = abs(measured_raw.min())
+        measured_angle = (measured_raw + offset)*scale
+
+        mse = np.mean((measured_angle - predicted) ** 2)
+        rmse = np.sqrt(mse)
+        
+        return rmse
+
+            
+
