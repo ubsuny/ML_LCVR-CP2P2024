@@ -332,7 +332,7 @@ class optimize_model:
         #Finds the best parameter then re-searches in a progressively narrower range
         #If both parameters are unchanged
         while True:
-            print("Loop")
+            print("Loop: " + str(best_c) + " " + str(best_gamma))
             grid_search = GridSearchCV(SVR(kernel='rbf'), param_grid, cv=5)
             grid_search.fit(X,y)
             
@@ -351,10 +351,12 @@ class optimize_model:
     
     def fit_2d(self,input_c,input_gamma):
         
-        X = self.data_2d['V2']
-        y = self.data_2d['Angle']
+        x = np.array(self.data_2d['V2'])
+        X = x.reshape(-1,1)
+        y = np.array(self.data_2d['Angle'])
 
         model = SVR(kernel='rbf', C=input_c, gamma=input_gamma)
+        model.fit(X,y)
 
         return model
     
@@ -377,9 +379,10 @@ class optimize_model:
         v2_inputs = np.random.rand(measurements) * (v2_high - v2_low) + v2_low
 
         for input in v2_inputs:
+            v2 = np.array(input).reshape(-1,1) #Needed shape for model prediction
             lcvrs.set_input_volts(input,2)
             time.sleep(0.05)
-            predicted.append(model.predict(input))
+            predicted.append(model.predict(input)[0])
             measured_raw.append(lcvrs.get_voltage())
 
         # Need to change measured to an angle
