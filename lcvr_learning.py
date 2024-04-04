@@ -277,7 +277,6 @@ class lcvr_learning:
             num_steps: Number of steps for 2d data collection
 
         Returns:
-            optimal_v1: The fixed v1 for the greatest polarization range
             data_2d: Data used for the 2D fit
         """
 
@@ -298,7 +297,7 @@ class lcvr_learning:
         wavelength = training_data['Wavelength'][2]
         data_2d = self.get_training_data(num_steps, wavelength, mode = "fixed_v1", v1 = optimal_v1)
 
-        return optimal_v1, data_2d
+        return data_2d
 
 class optimize_model:
 
