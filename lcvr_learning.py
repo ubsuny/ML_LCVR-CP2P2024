@@ -266,7 +266,7 @@ class lcvr_learning:
         return trainingdataframe
 
 
-    def get_2d_data(self, training_data, num_steps: int, wavelength = 123):
+    def get_2d_data(self, training_data, num_steps: int):
         """
         Gets a 2D fit for a *single wavelength* that can generate an arbitrary polarization with
         fixed V1. It takes the data and checks for a fixed V1 axis where max polarization
@@ -275,9 +275,7 @@ class lcvr_learning:
         Args:
             training_data: The 3D scan data obtained from get_training_data()
             num_steps: Number of steps for 2d data collection
-            wavelength: Kind of defeats the purpose of not having to get the wavelength beforehand,
-                        but if you'd like it in the training data it's an option
-
+            
         Returns:
             optimal_v1: The fixed v1 for the greatest polarization range
             data_2d: Data used for the 2D fit
