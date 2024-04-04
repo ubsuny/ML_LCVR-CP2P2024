@@ -3,6 +3,8 @@ import time
 import numpy as np
 import pyvisa
 import pandas as pd
+from sklearn.svm import SVR
+from sklearn.model_selection import GridSearchCV
 rm = pyvisa.ResourceManager('@py')
 sdg = rm.open_resource('USB0::62700::4354::SDG2XCAD5R3372::0::INSTR')
 
@@ -263,6 +265,44 @@ class lcvr_learning:
 
         return trainingdataframe
 
+
+    def get_2d_data(self, training_data, num_steps: int, wavelength = 123):
+        """
+        Gets a 2D fit for a *single wavelength* that can generate an arbitrary polarization with
+        fixed V1. It takes the data and checks for a fixed V1 axis where max polarization
+        range is achievable, then rescans over there and models this range
+
+        Args:
+            training_data: The 3D scan data obtained from get_training_data()
+            num_steps: Number of steps for 2d data collection
+            wavelength: Kind of defeats the purpose of not having to get the wavelength beforehand,
+                        but if you'd like it in the training data it's an option
+
+        Returns:
+            optimal_v1: The fixed v1 for the greatest polarization range
+            data_2d: Data used for the 2D fit
+        """
+
+        #Finds V1 with max range
+        print("Finding optimal V1")
+        max_range = [1,2]
+        v1_vals = training_data['V1'].unique()
+        for val in v1_vals:
+            axis = training_data[training_data['V1'] == val]
+            range = axis['Angle'].max() - axis['Angle'].min()
+            if range > max_range[1]:
+                max_range = [val,range]
+        
+        optimal_v1 = max_range[0]
+
+        #Gets more thorough data along fixed V1 axis
+        print("Rescanning along new axis")
+        data_2d = self.get_training_data(num_steps, wavelength, mode = "fixed_v1", v1 = optimal_v1)
+
+        return optimal_v1, data_2d
+
+class optimize_model:
+
     def optimize_model_2d(self,data_2d):
         """
         Optimizes SVM regressor with given data
@@ -300,41 +340,12 @@ class lcvr_learning:
                 break
         
         return best_c, best_gamma
-
-
-    def get_2d_fit(self, training_data, num_steps: int, wavelength = 123):
-        """
-        Gets a 2D fit for a *single wavelength* that can generate an arbitrary polarization with
-        fixed V1. It takes the data and checks for a fixed V1 axis where max polarization
-        range is achievable, then rescans over there and models this range
-
-        Args:
-            training_data: The 3D scan data obtained from get_training_data()
-            num_steps: Number of steps for 2d data collection
-            wavelength: Kind of defeats the purpose of not having to get the wavelength beforehand,
-                        but if you'd like it in the training data it's an option
-
-        Returns:
-            optimal_v1: The fixed v1 for the greatest polarization range
-            data_2d: Data used for the 2D fit
-            model: Fit for the 2d data
-        """
-
-        #Finds V1 with max range
-        print("Finding optimal V1")
-        max_range = [1,2]
-        v1_vals = training_data['V1'].unique()
-        for val in v1_vals:
-            axis = training_data[training_data['V1'] == val]
-            range = axis['Angle'].max() - axis['Angle'].min()
-            if range > max_range[1]:
-                max_range = [val,range]
+    
+    def fit_2d(self, data_2d,input_c,input_gamma):
         
-        optimal_v1 = max_range[0]
+        X = data_2d['V2']
+        y = data_2d['Angle']
 
-        #Gets more thorough data along fixed V1 axis
-        print("Rescanning along new axis")
-        data_2d = self.get_training_data(num_steps, wavelength, mode = "fixed_v1", v1 = optimal_v1)
+        model = SVR(kernel='rbf', C=input_c, gamma=input_gamma)
 
-        #Fits new data with SVM
-
+        return model
