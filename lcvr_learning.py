@@ -260,3 +260,18 @@ class lcvr_learning:
         training_data['Angle'] = (training_data['Out'] + offset)*scale
 
         return training_data
+
+    def get_2d_fit(self,training_data):
+        """
+        Gets a 2D fit for a *single wavelength* that can generate an arbitrary polarization with
+        fixed V1. It takes the data and checks for a fixed V1 axis where max polarization
+        range is achievable, then rescans over there and models this range
+
+        Args:
+            training_data: The 3D scan data obtained from get_training_data()
+
+        Returns:
+            optimal_v1: The fixed v1 for the greatest polarization range
+            2d_scan_data: Data used for the 2D fit
+            model: Fit for the 2d data
+        """
