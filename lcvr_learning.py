@@ -333,7 +333,7 @@ class optimize_model:
         while True:
 
             grid_search = GridSearchCV(SVR(kernel='rbf'), param_grid, cv=5)
-            best_gamma = grid_search.best_params_['gamma']
+            grid_search.fit(x,y)
             
             if grid_search.best_params_['C'] != best_c or grid_search.best_params_['gamma'] != best_gamma:
                 best_c = grid_search.best_params_['C']
