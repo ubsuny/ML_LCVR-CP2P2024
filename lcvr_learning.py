@@ -319,27 +319,31 @@ class optimize_model:
             best_gamma: Optimized gamma for svm regressor
         """
 
-        x = self.data_2d['V2']
-        y = self.data_2d['Angle']
-        best_c = 0
-        best_gamma = 0
-        c_step = 10
-        gamma_step = 1
+        x = np.array(self.data_2d['V2'])
+        X = x.reshape(-1, 1) 
+        y = np.array(self.data_2d['Angle'])
+        best_c = 0.5
+        best_gamma = 0.1
+        c_step = 0.5
+        gamma_step = 0.1
         param_grid = {'C': [0.1, 1, 10, 100], 'gamma': [0.001, 0.01, 0.1, 1]}
 
         #Searches 5x5 parameter grids for the best fitting parameters
         #Finds the best parameter then re-searches in a progressively narrower range
         #If both parameters are unchanged
         while True:
-
+            print("Loop")
             grid_search = GridSearchCV(SVR(kernel='rbf'), param_grid, cv=5)
-            grid_search.fit(x,y)
+            grid_search.fit(X,y)
             
             if grid_search.best_params_['C'] != best_c or grid_search.best_params_['gamma'] != best_gamma:
                 best_c = grid_search.best_params_['C']
                 best_gamma = grid_search.best_params_['gamma']
                 c_step = c_step/2
-                param_grid = {'C': np.linspace((best_c - 2*c_step),best_c + 2*c_step,5), 'gamma': np.linspace((best_gamma - 2*gamma_step),(best_gamma + 2*best_gamma),best_gamma)}
+                param_grid = {
+                'C': np.linspace(max(0.1, best_c - 2*c_step), best_c + 2*c_step, 5),
+                'gamma': np.linspace(max(0.001, best_gamma - 2*gamma_step), best_gamma + 2*gamma_step, 5)
+                }
             else:
                 break
         
