@@ -1,5 +1,6 @@
 from ADCDifferentialPi import ADCDifferentialPi as adc
 import time
+import math
 import numpy as np
 import pyvisa
 import pandas as pd
@@ -320,6 +321,7 @@ class optimize_model:
         x = np.array(self.data_2d['V2'])
         X = x.reshape(-1, 1) 
         y = np.array(self.data_2d['Angle'])
+        precision = 0.0005
         best_c = 0.5
         best_gamma = 0.1
         c_step = 0.5
@@ -334,7 +336,7 @@ class optimize_model:
             grid_search = GridSearchCV(SVR(kernel='rbf'), param_grid, cv=5)
             grid_search.fit(X,y)
             
-            if grid_search.best_params_['C'] != best_c or grid_search.best_params_['gamma'] != best_gamma:
+            if not math.isclose(grid_search.best_params_['C'],best_c,abs_tol = precision) or not math.isclose(grid_search.best_params_['gamma'], best_gamma,abs_tol = precision):
                 best_c = grid_search.best_params_['C']
                 best_gamma = grid_search.best_params_['gamma']
                 c_step = c_step/2
