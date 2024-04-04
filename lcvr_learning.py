@@ -117,6 +117,26 @@ class lcvr_learning:
         for i in range(len(change_range)):
             self.funcgen.write("C"+str(channel)+":BSWV AMP, " + str(change_range[i]))
         self.outputs_on()
+    
+    def add_angle(self,training_data):
+        """
+        Adds a column to the output data that represents the output as a polarization angle
+        Maybe put this in get_training_data?
+
+        Args:
+            training_data: Training data from get_training_data (pandas dataframe)
+        
+        Returns:
+            training_data: Training data with Angle column attached
+        
+        """
+
+        range = training_data['Out'].max() - training_data['Out'].min()
+        scale = 90/range
+        offset = abs(training_data['Out'].min())
+        training_data['Angle'] = (training_data['Out'] + offset)*scale
+
+        return training_data
 
     def get_training_data(self, num_iterations: int, wavelength,gain = 1,mode = "all",v1 = 0):
         """
@@ -239,27 +259,9 @@ class lcvr_learning:
 
         trainingdataframe = pd.DataFrame(trainingdata)
 
+        trainingdataframe = self.add_angle(trainingdataframe)
+
         return trainingdataframe
-    
-    def add_angle(self,training_data):
-        """
-        Adds a column to the output data that represents the output as a polarization angle
-        Maybe put this in get_training_data?
-
-        Args:
-            training_data: Training data from get_training_data (pandas dataframe)
-        
-        Returns:
-            training_data: Training data with Angle column attached
-        
-        """
-
-        range = training_data['Out'].max() - training_data['Out'].min()
-        scale = 90/range
-        offset = abs(training_data['Out'].min())
-        training_data['Angle'] = (training_data['Out'] + offset)*scale
-
-        return training_data
 
     def get_2d_fit(self,training_data):
         """
@@ -275,3 +277,4 @@ class lcvr_learning:
             2d_scan_data: Data used for the 2D fit
             model: Fit for the 2d data
         """
+
