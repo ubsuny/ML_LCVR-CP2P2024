@@ -384,6 +384,7 @@ class optimize_model:
             measured_raw.append(lcvrs.get_voltage())
 
         # Need to change measured to an angle
+        measured_raw = np.array(measured_raw)
         range = measured_raw.max() - measured_raw.min()
         scale = 90/range
         offset = abs(measured_raw.min())
