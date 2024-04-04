@@ -263,9 +263,16 @@ class lcvr_learning:
 
         return trainingdataframe
 
-    def optimize_model(self,data_2d):
+    def optimize_model_2d(self,data_2d):
         """
         Optimizes SVM regressor with given data
+
+        Args:
+            data_2d: 2d data for regressor to optimize
+
+        Returns:
+            best_c: Optimized c for svm regressor
+            best_gamma: Optimized gamma for svm regressor
         """
 
         x = data_2d['V2']
