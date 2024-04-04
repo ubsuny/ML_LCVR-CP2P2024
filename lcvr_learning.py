@@ -303,7 +303,11 @@ class lcvr_learning:
 
 class optimize_model:
 
-    def optimize_model_2d(self,data_2d):
+    def __init__(self, data_3d):
+
+        self.data_2d = data_3d
+
+    def optimize_model_2d(self):
         """
         Optimizes SVM regressor with given data
 
@@ -315,8 +319,8 @@ class optimize_model:
             best_gamma: Optimized gamma for svm regressor
         """
 
-        x = data_2d['V2']
-        y = data_2d['Angle']
+        x = self.data_2d['V2']
+        y = self.data_2d['Angle']
         best_c = 0
         best_gamma = 0
         c_step = 10
@@ -341,16 +345,16 @@ class optimize_model:
         
         return best_c, best_gamma
     
-    def fit_2d(self, data_2d,input_c,input_gamma):
+    def fit_2d(self,input_c,input_gamma):
         
-        X = data_2d['V2']
-        y = data_2d['Angle']
+        X = self.data_2d['V2']
+        y = self.data_2d['Angle']
 
         model = SVR(kernel='rbf', C=input_c, gamma=input_gamma)
 
         return model
     
-    def calc_rmse(self,model,measurements,v1,v2_low,v2_high):
+    def calc_rmse(self,model,measurements,v1):
         """
         Finds the RMS error between the model's predictions and actual measurements using random sampling (in real time)
         of the polarization
@@ -359,8 +363,11 @@ class optimize_model:
         #Need to initialize the lcvrs for measurement. Note that input channels may change depending on your configuration
         lcvrs = lcvr_learning(0x6a,0x6b)
         lcvrs.set_input_volts(v1,1)
+
         measured_raw = []
         predicted = []
+        v2_low = self.data_2d['V2'].min()
+        v2_high = self.data_2d['V2'].max()
 
         #Generates random V2 values to test the fit against
         v2_inputs = np.random.rand(measurements) * (v2_high - v2_low) + v2_low
