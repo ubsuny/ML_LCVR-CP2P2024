@@ -164,7 +164,8 @@ class lcvr_learning:
         print("Starting training data scan. Don't touch anything please")
 
         min_volt = .6
-        delay = .05 #Based on response time of LCVR, which is around 30 ms, Right now 50 for safety/accuracy
+        delay = 1 #Response time of lcvr is ~30 ms, but can take longer to actually relax? So for training data purposes
+                    # a large response time is *very* useful
 
         # First check to make sure the parameters are in a safe range, then set voltage to a low value on both
         self.set_input_volts(min_volt,1)
@@ -410,12 +411,12 @@ class optimize_model:
         #Generates random V2 values to test the fit against
         v2_inputs = np.random.rand(measurements) * (v2_high - v2_low) + v2_low
 
-        np.sort(v2_inputs) # If the increments are small the response time is better/better for the function generator
+        v2_inputs = np.sort(v2_inputs) # If the increments are small the response time is better/better for the function generator
 
         for input in v2_inputs:
             v2 = np.array(input).reshape(-1,1) #Needed shape for model prediction
             lcvrs.set_input_volts(input,2)
-            time.sleep(0.5)
+            time.sleep(1)
             predicted.append(model.predict(v2)[0])
             measured_raw.append(lcvrs.get_voltage())
 
