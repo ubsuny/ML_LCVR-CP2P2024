@@ -408,11 +408,12 @@ class optimize_model:
         scale = 90/range
         offset = abs(measured_raw.min())
         measured_angle = (measured_raw + offset)*scale
+        rmse_measurements = [v2_inputs,measured_angle,predicted]
 
         mse = np.mean((measured_angle - predicted) ** 2)
         rmse = np.sqrt(mse)
         
-        return rmse
+        return rmse, rmse_measurements
 
             
 
