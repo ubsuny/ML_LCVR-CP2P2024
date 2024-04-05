@@ -309,6 +309,20 @@ class optimize_model:
 
         self.data_2d = data_3d
 
+    def get_scale(self,data_2d):
+        """
+        Needed to preserve scaling between training and validation
+        """
+
+        top = data_2d['Out'].max()
+        bot = data_2d['Out'].min
+        offset = abs(bot)
+        range = np.max(measured_raw) - np.min(measured_raw)
+        scale = 90/range
+
+        return scale,range,offset
+
+
     def optimize_model_2d(self):
         """
         Optimizes SVM regressor with given data
@@ -377,10 +391,11 @@ class optimize_model:
 
         return model
     
-    def calc_rmse(self,model,measurements,v1):
+    def calc_rmse(self,model,measurements,v1,scale,range,offset):
         """
         Finds the RMS error between the model's predictions and actual measurements using random sampling (in real time)
         of the polarization
+        NOTE: needs scale,range,offset from original data
         """
 
         #Need to initialize the lcvrs for measurement. Note that input channels may change depending on your configuration
@@ -404,9 +419,6 @@ class optimize_model:
 
         # Need to change measured to an angle
         measured_raw = np.array(measured_raw)
-        range = np.max(measured_raw) - np.min(measured_raw)
-        scale = 90/range
-        offset = abs(measured_raw.min())
         measured_angle = (measured_raw + offset)*scale
         rmse_measurements = [v2_inputs,measured_angle,predicted]
 
