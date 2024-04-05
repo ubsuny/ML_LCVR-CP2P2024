@@ -413,10 +413,12 @@ class optimize_model:
         for input in v2_inputs:
             v2 = np.array(input).reshape(-1,1) #Needed shape for model prediction
             lcvrs.set_input_volts(input,2)
-            time.sleep(0.05)
+            time.sleep(0.5)
             predicted.append(model.predict(v2)[0])
             measured_raw.append(lcvrs.get_voltage())
 
+        
+        lcvrs.outputs_off()
         # Need to change measured to an angle
         measured_raw = np.array(measured_raw)
         measured_angle = (measured_raw + offset)*scale
