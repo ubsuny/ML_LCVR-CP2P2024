@@ -315,9 +315,9 @@ class optimize_model:
         """
 
         top = data_2d['Out'].max()
-        bot = data_2d['Out'].min
+        bot = data_2d['Out'].min()
         offset = abs(bot)
-        range = np.max(measured_raw) - np.min(measured_raw)
+        range = top - bot
         scale = 90/range
 
         return scale,range,offset
