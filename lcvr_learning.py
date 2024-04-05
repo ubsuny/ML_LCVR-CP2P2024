@@ -1,4 +1,3 @@
-from ADCDifferentialPi import ADCDifferentialPi as adc
 import time
 import math
 import numpy as np
@@ -10,7 +9,7 @@ rm = pyvisa.ResourceManager('@py')
 sdg = rm.open_resource('USB0::62700::4354::SDG2XCAD5R3372::0::INSTR')
 
 class lcvr_learning:
-    
+
     def __init__(self,i2c1,i2c2,input_channel = 1, sample_rate = 18, funcgen = sdg):
         """Initializes the object
 
@@ -21,6 +20,9 @@ class lcvr_learning:
             sample_rate: Sampling bitrate. Highest is 18
             funcgen: Function generator resource with pyvisa. Here using siglent 2042
         """
+
+        from ADCDifferentialPi import ADCDifferentialPi as adc
+
         self.i2c1 = i2c1
         self.i2c2 = i2c2
         self.input_channel = input_channel
@@ -326,24 +328,34 @@ class optimize_model:
         best_gamma = 0.1
         c_step = 0.5
         gamma_step = 0.1
+        min_step_size = 0.05
+        improvement_threshold = 0.01
+        prev_score = 0
         param_grid = {'C': [0.1, 1, 10, 100], 'gamma': [0.001, 0.01, 0.1, 1]}
 
-        #Searches 5x5 parameter grids for the best fitting parameters
+        #Searches 10x10 parameter grids for the best fitting parameters
         #Finds the best parameter then re-searches in a progressively narrower range
         #If both parameters are unchanged
+        #Should add some more explanation
         while True:
             print("Loop: " + str(best_c) + " " + str(best_gamma))
             grid_search = GridSearchCV(SVR(kernel='rbf'), param_grid, cv=5)
             grid_search.fit(X,y)
+
+            current_score = grid_search.best_score_
+            improvement = current_score - prev_score
+            prev_score = current_score
             
             if not math.isclose(grid_search.best_params_['C'],best_c,abs_tol = precision) or not math.isclose(grid_search.best_params_['gamma'], best_gamma,abs_tol = precision):
                 best_c = grid_search.best_params_['C']
                 best_gamma = grid_search.best_params_['gamma']
-                c_step = c_step/2
-                gamma_step = gamma_step/2
+                if improvement > improvement_threshold and c_step > min_step_size:
+                    c_step /= 2
+                if improvement > improvement_threshold and gamma_step > min_step_size: 
+                    gamma_step /= 2
                 param_grid = {
-                'C': np.linspace(max(0.1, best_c - 2*c_step), best_c + 2*c_step, 5),
-                'gamma': np.linspace(max(0.001, best_gamma - 2*gamma_step), best_gamma + 2*gamma_step, 5)
+                'C': np.linspace(max(0.1, best_c - 2*c_step), best_c + 2*c_step, 10),
+                'gamma': np.linspace(max(0.001, best_gamma - 2*gamma_step), best_gamma + 2*gamma_step, 10)
                 }
             else:
                 break
