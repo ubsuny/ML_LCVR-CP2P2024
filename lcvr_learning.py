@@ -410,6 +410,8 @@ class optimize_model:
         #Generates random V2 values to test the fit against
         v2_inputs = np.random.rand(measurements) * (v2_high - v2_low) + v2_low
 
+        np.sort(v2_inputs) # If the increments are small the response time is better/better for the function generator
+
         for input in v2_inputs:
             v2 = np.array(input).reshape(-1,1) #Needed shape for model prediction
             lcvrs.set_input_volts(input,2)
