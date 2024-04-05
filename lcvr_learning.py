@@ -324,15 +324,18 @@ class optimize_model:
         x = np.array(self.data_2d['V2'])
         X = x.reshape(-1, 1) 
         y = np.array(self.data_2d['Angle'])
-        precision = 0.0005
-        best_c = 0.5
-        best_gamma = 0.1
-        c_step = 0.5
-        gamma_step = 0.1
+        precision = 0.005
+        best_c = 300 #A priori I know that these are approximate values for c and gamma via testing, speeds up convergence
+        best_gamma = 20
+        c_step = 50
+        gamma_step = 1
         min_step_size = 0.05
         improvement_threshold = 0.01
         prev_score = 0
-        param_grid = {'C': [0.1, 1, 10, 100], 'gamma': [0.001, 0.01, 0.1, 1]}
+        param_grid = {
+                'C': np.linspace(max(0.1, best_c - 2*c_step), best_c + 2*c_step, 10),
+                'gamma': np.linspace(max(0.001, best_gamma - 2*gamma_step), best_gamma + 2*gamma_step, 10)
+                }
 
         #Searches 10x10 parameter grids for the best fitting parameters
         #Finds the best parameter then re-searches in a progressively narrower range
