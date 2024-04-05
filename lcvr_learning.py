@@ -1,16 +1,13 @@
 import time
 import math
 import numpy as np
-import pyvisa
 import pandas as pd
 from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
-rm = pyvisa.ResourceManager('@py')
-sdg = rm.open_resource('USB0::62700::4354::SDG2XCAD5R3372::0::INSTR')
 
 class lcvr_learning:
 
-    def __init__(self,i2c1,i2c2,input_channel = 1, sample_rate = 18, funcgen = sdg):
+    def __init__(self,i2c1,i2c2,input_channel = 1, sample_rate = 18, funcgen = "null"):
         """Initializes the object
 
         Args:
@@ -22,6 +19,10 @@ class lcvr_learning:
         """
 
         from ADCDifferentialPi import ADCDifferentialPi as adc
+        import pyvisa
+        rm = pyvisa.ResourceManager('@py')
+        sdg = rm.open_resource('USB0::62700::4354::SDG2XCAD5R3372::0::INSTR')
+        funcgen = sdg
 
         self.i2c1 = i2c1
         self.i2c2 = i2c2
