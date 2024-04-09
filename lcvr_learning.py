@@ -517,7 +517,7 @@ class complete_fit_2d:
         self.num_measurements = num_measurements
         self.num_models = num_models
 
-        return 0
+        return None
 
 
     def compare_models(self,models,data_2d):
