@@ -575,12 +575,13 @@ class complete_fit_2d:
         for i in range(len(data_2d)):
             print("Optimizing 2D Model #" + str(i))
             optimizer = optimize_model(data_2d[i])
-            voltages.append(data_2d[i]['V1'][2])
+            v1 = data_2d[i]['V1'][2]
+            voltages.append(v1)
             scale,rang,offset = optimizer.get_scale(data) #This is sloppy implementation overall, would like to rework
             best_c, best_gamma = optimizer.optimize_model_2d()
             model = optimizer.fit_2d(best_c,best_gamma)
             models.append(model)
-            rmse, error_meas = optimizer.calc_rmse(model,self.val_meas,scale,rang,offset)
+            rmse, error_meas = optimizer.calc_rmse(model,self.val_meas,v1,scale,rang,offset)
             errors.append(rmse)
         
         min_index = np.argmin(errors)
