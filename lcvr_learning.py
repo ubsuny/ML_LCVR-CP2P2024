@@ -571,9 +571,11 @@ class complete_fit_2d:
         lcvrs.close_connection()
         errors = []
         models = []
+        voltages = []
         for i in range(len(data_2d)):
             print("Optimizing 2D Model #" + str(i))
             optimizer = optimize_model(data_2d[i])
+            voltages.append(data_2d[i]['V1'][2])
             scale,rang,offset = optimizer.get_scale(data) #This is sloppy implementation overall, would like to rework
             best_c, best_gamma = optimizer.optimize_model_2d()
             model = optimizer.fit_2d(best_c,best_gamma)
@@ -583,10 +585,11 @@ class complete_fit_2d:
         
         min_index = np.argmin(errors)
         best_model = models[min_index]
+        best_v1 = voltages[min_index]
 
         print("Returning model with RMSE " + str(errors[min_index]) + " degrees")
 
-        return best_model
+        return best_model, best_v1
             
             
         
