@@ -192,7 +192,7 @@ class lcvr_learning:
 
         return training_data
 
-    def get_training_data(self, num_iterations: int, wavelength,gain = 1,mode = "all",v1 = 0):
+    def get_training_data(self, num_iterations: int, wavelength,gain = 4,mode = "all",v1 = 0):
         """
             Generates training data by scanning a range of input voltages for each lcvr and measuring the
             differential output signal from the photodetectors
@@ -581,16 +581,16 @@ class complete_fit_2d:
             best_c, best_gamma = optimizer.optimize_model_2d()
             model = optimizer.fit_2d(best_c,best_gamma)
             models.append(model)
-            rmse, error_meas = optimizer.calc_rmse(model,self.val_meas,v1,scale,rang,offset)
+            rmse, error_meas = optimizer.calc_rmse(model,self.val_meas,scale,rang,offset)
             errors.append(rmse)
         
         min_index = np.argmin(errors)
         best_model = models[min_index]
         best_v1 = voltages[min_index]
 
-        print("Returning model with RMSE " + str(errors[min_index]) + " degrees")
+        print("Returning model with RMSE " + str(errors[min_index]) + " degrees at " + str(best_v1) + " Volts")
 
-        return best_model, best_v1
+        return best_model
             
             
         
