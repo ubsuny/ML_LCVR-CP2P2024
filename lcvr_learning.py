@@ -341,14 +341,17 @@ class lcvr_learning:
         v1_vals = training_data['V1'].unique()
         for val in v1_vals:
             axis = training_data[training_data['V1'] == val]
-            range = axis['Angle'].max() - axis['Angle'].min()
-            if range > min_range:
-                max_range.append([val,range])
+            ranged = axis['Angle'].max() - axis['Angle'].min()
+            if ranged > min_range:
+                max_range.append([val,ranged])
         
         sorted_range = sorted(max_range, key=lambda x: x[1], reverse=True)
-        if num_axes < len(sorted_range):
+        if int(num_axes) > len(sorted_range):
             num_axes = int(len(sorted_range))
 
+        if len(sorted_range) == 0:
+            raise SystemExit("Error: No Optimal Range Found. Please increase training data size")
+    
         for i in range(num_axes):
             optimal_v1 = sorted_range[i][0]
 
