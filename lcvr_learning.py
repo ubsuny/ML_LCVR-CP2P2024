@@ -104,6 +104,9 @@ class lcvr_learning:
     
         return freq, volt
     
+    def outputs_off(self):
+        self.funcgen.write("C1:OUTP OFF")
+        self.funcgen.write("C2:OUTP OFF")
         
     def check_params(self):
         """
@@ -115,16 +118,20 @@ class lcvr_learning:
         freq2, volt2 = self.get_wave_info(2)
 
         if freq1 != 2000.0:
+            self.outputs_off()
             self.funcgen.write("C1:BSWV FRQ, 2000")
             raise SystemExit("WARNING: INCORRECT FREQUENCY, MUST BE 2 kHz")
         if volt1 > 10.0:
+            self.outputs_off()
             self.funcgen.write("C1:BSWV AMP, 1")
             raise SystemExit("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 10 V")
         
         if freq2 != 2000.0:
+            self.outputs_off()
             self.funcgen.write("C2:BSWV FRQ, 2000")
             raise SystemExit("WARNING: INCORRECT FREQUENCY, MUST BE 2 kHz")
         if volt2 > 10.0:
+            self.outputs_off()
             self.funcgen.write("C2:BSWV AMP, 1")
             raise SystemExit("WARNING: VOLTAGE TOO HIGH. VOLTAGE SHOULD BE NO GREATER THAN 10 V")
         
@@ -132,10 +139,6 @@ class lcvr_learning:
         self.check_params()
         self.funcgen.write("C1:OUTP ON")
         self.funcgen.write("C2:OUTP ON")
-
-    def outputs_off(self):
-        self.funcgen.write("C1:OUTP OFF")
-        self.funcgen.write("C2:OUTP OFF")
 
     def set_input_volts(self,target_volts,channel:int):
         current_volts = self.get_wave_info(channel)[1]
