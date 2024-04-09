@@ -516,6 +516,7 @@ class complete_fit_2d:
         self.wavelength = wavelength
         self.num_measurements = num_measurements
         self.num_models = num_models
+        self.val_meas = val_meas
 
         return None
 
