@@ -486,5 +486,40 @@ class optimize_model:
         
         return rmse, rmse_measurements
 
-            
+class complete_fit_2d:
+    """
+    Class to automate the entire process of fitting from start to finish. Just lumps the above together and 
+    performs the process automatically. Should make it easy to go from aligned lcvr's w/ photodiodes
+    to arbitrary polarization control hands free.
+    """
+
+    def __init__(self,wavelength, num_measurements = 500, num_models = 5):
+        """
+        Initializes the object
+
+        Args:
+            wavelength: Input wavelength in nm. This works for arb. wl so it is only important if you wish to record it
+            num_iterations: Number of measurements for training data. More measurements ~ more accuracy
+            num_models: Number of 2d models to compare against each other
+        """
+
+        self.wavelength = wavelength
+        self.num_measurements = num_measurements
+        self.num_models = num_models
+
+        return 0
+
+
+    def compare_models(self,models):
+        """
+        Takes an arbitrary list of models and compares their RMSE against random measurements
+
+        ARgs:
+            models: List of models fitted with optimize_model.fit_2d()
+
+        Returns:
+            best_index: Index of model with lowest error
+        """
+
+        
 
