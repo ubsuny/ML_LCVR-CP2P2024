@@ -482,6 +482,7 @@ class optimize_model:
 
         mse = np.mean((measured_angle - predicted) ** 2)
         rmse = np.sqrt(mse)
+        lcvrs.close_connection()
         
         return rmse, rmse_measurements
 
