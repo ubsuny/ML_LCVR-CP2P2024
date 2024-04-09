@@ -7,7 +7,7 @@ from sklearn.model_selection import GridSearchCV
 
 class lcvr_learning:
 
-    def __init__(self,i2c1,i2c2,input_channel = 1, sample_rate = 18, funcgen = "null",max_attempts = 20):
+    def __init__(self,i2c1,i2c2,input_channel = 1, sample_rate = 18, funcgen = "null",max_attempts = 20,attempt_delay = 1):
         """Initializes the object
 
         Args:
@@ -31,6 +31,7 @@ class lcvr_learning:
         self.signal = adc(i2c1,i2c2,sample_rate)
         self.funcgen = funcgen
         self.max_attempts = max_attempts
+        self.attempt_delay = attempt_delay
         self.funcgen.write("C1:BSWV WVTP, SQUARE")
         self.funcgen.write("C1:BSWV FRQ, 2000") # Wave must be 2000 Hz Square wave, no exceptions
         self.funcgen.write("C1:BSWV AMP, 1")
@@ -70,8 +71,8 @@ class lcvr_learning:
         #So I want to just except and retry that should it happen. It should only take 1 or 2 attempts,
         #but I wanted to add *some* maximum in case for some reason there's some real issues.
         #This is repeated for any of the other SCPI read/write functions
-        max_attempts = 20
-        delay = 1
+        max_attempts = self.max_attempts
+        delay = self.attempt_delay
 
         for attempt in range(max_attempts):
             try:
@@ -137,11 +138,28 @@ class lcvr_learning:
         
     def outputs_on(self):
         self.check_params()
-        self.funcgen.write("C1:OUTP ON")
-        self.funcgen.write("C2:OUTP ON")
+        max_attempts = self.max_attempts
+        delay = self.attempt_delay
+        for attempt in range(max_attempts):
+                try:
+                    self.funcgen.write("C1:OUTP ON")
+                    break
+                except:
+                    print("Read error, retrying")
+                    time.sleep(delay)
+        
+        for attempt in range(max_attempts):
+                try:
+                    self.funcgen.write("C2:OUTP ON")
+                    break
+                except:
+                    print("Read error, retrying")
+                    time.sleep(delay)
+        
 
     def set_input_volts(self,target_volts,channel:int):
-        max_attempts = 20
+        max_attempts = self.max_attempts
+        delay = self.attempt_delay
         current_volts = self.get_wave_info(channel)[1]
         change_range = np.linspace(current_volts,target_volts,3)
         for i in range(len(change_range)):
