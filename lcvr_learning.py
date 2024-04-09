@@ -352,6 +352,9 @@ class lcvr_learning:
 
         return data_2d
 
+    def close_connection(self):
+        self.funcgen.close()
+
 class optimize_model:
 
     def __init__(self, data_3d):
