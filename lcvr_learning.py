@@ -361,17 +361,19 @@ class optimize_model:
             grid_search = GridSearchCV(SVR(kernel='rbf'), param_grid, cv=5)
             grid_search.fit(X,y)
 
+            current_c = grid_search.best_params_['C']
+            current_gamma = grid_search.best_params_['gamma']
             current_score = grid_search.best_score_
             improvement = current_score - prev_score
             prev_score = current_score
             
-            if not math.isclose(grid_search.best_params_['C'],best_c,abs_tol = precision) or not math.isclose(grid_search.best_params_['gamma'], best_gamma,abs_tol = precision):
-                best_c = grid_search.best_params_['C']
-                best_gamma = grid_search.best_params_['gamma']
+            if not math.isclose(current_c,best_c,abs_tol = precision) or not math.isclose(current_gamma, best_gamma,abs_tol = precision):
                 if improvement > improvement_threshold and c_step > min_step_size:
                     c_step /= 2
                 if improvement > improvement_threshold and gamma_step > min_step_size: 
                     gamma_step /= 2
+                best_c = current_c
+                best_gamma = current_gamma
                 param_grid = {
                 'C': np.linspace(max(0.1, best_c - 2*c_step), best_c + 2*c_step, 10),
                 'gamma': np.linspace(max(0.001, best_gamma - 2*gamma_step), best_gamma + 2*gamma_step, 10)
