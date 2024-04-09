@@ -357,17 +357,17 @@ class lcvr_learning:
 
 class optimize_model:
 
-    def __init__(self, data_3d):
+    def __init__(self, data_2d):
 
-        self.data_2d = data_3d
+        self.data_2d = data_2d
 
-    def get_scale(self,data_2d):
+    def get_scale(self):
         """
         Needed to preserve scaling between training and validation
         """
 
-        top = data_2d['Out'].max()
-        bot = data_2d['Out'].min()
+        top = self.data_2d['Out'].max()
+        bot = self.data_2d['Out'].min()
         offset = abs(bot)
         range = top - bot
         scale = 90/range
@@ -510,7 +510,7 @@ class complete_fit_2d:
         return 0
 
 
-    def compare_models(self,models):
+    def compare_models(self,models,data_2d):
         """
         Takes an arbitrary list of models and compares their RMSE against random measurements
 
@@ -519,7 +519,14 @@ class complete_fit_2d:
 
         Returns:
             best_index: Index of model with lowest error
+            model_errors: List of RMSE errors of models
+            data_2d: List of 2d data sets used for modelling
         """
 
-        
+        errors = []
+        for i in range(len(models)):
+            optimize = optimize_model(data_2d[i])
+            scale,range,offset = optimize.get_scale
+            
+            rmse = calc_rmse(models[i])
 
