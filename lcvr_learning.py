@@ -591,6 +591,19 @@ class complete_fit_2d:
         print("Returning model with RMSE " + str(errors[min_index]) + " degrees at " + str(best_v1) + " Volts")
 
         return best_model
+
+    def set_polarization_angle(self,model,angle):
+        """
+        Sets the output polarization to the chosen angle using the model found before
+        """
+
+        x_model = np.linspace(0.6, 10, 2000).reshape(-1, 1)
+        model_arr = model.predict(x_model)
+        abs_diffs = np.abs(model_arr - angle)
+        closest_index = np.argmin(abs_diffs)
+        closest_v2 = x_model[closest_index][0]
+
+        return closest_v2
             
             
         
