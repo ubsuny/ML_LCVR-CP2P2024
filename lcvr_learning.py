@@ -345,7 +345,7 @@ class lcvr_learning:
             if range > min_range:
                 max_range.append([val,range])
         
-        sorted_range = max_range[max_range[:, 1].argsort()[::-1]]
+        sorted_range = sorted(max_range, key=lambda x: x[1], reverse=True)
         if num_axes < len(sorted_range):
             num_axes = len(sorted_range)
 
