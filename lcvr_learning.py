@@ -340,8 +340,8 @@ class optimize_model:
         X = x.reshape(-1, 1) 
         y = np.array(self.data_2d['Angle'])
         precision = 0.5
-        best_c = 300 #A priori I know that these are approximate values for c and gamma via testing, speeds up convergence
-        best_gamma = 20
+        best_c = 284 #A priori I know that these are approximate values for c and gamma via testing, speeds up convergence
+        best_gamma = 14
         c_step = 50
         gamma_step = 1
         min_step_size = 0.05
