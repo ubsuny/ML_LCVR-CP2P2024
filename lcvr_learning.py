@@ -7,7 +7,7 @@ from sklearn.model_selection import GridSearchCV
 
 class lcvr_learning:
 
-    def __init__(self,i2c1,i2c2,input_channel = 1, sample_rate = 18, funcgen = "null"):
+    def __init__(self,i2c1,i2c2,input_channel = 1, sample_rate = 18, funcgen = "null",max_attempts = 20):
         """Initializes the object
 
         Args:
@@ -16,6 +16,7 @@ class lcvr_learning:
             input_channel: Input channel for photodiode data. Using ABElectronics ADC hat. Should be an int (and typically 1)
             sample_rate: Sampling bitrate. Highest is 18
             funcgen: Function generator resource with pyvisa. Here using siglent 2042
+            max_attempts: Max attempts at reading for exception handling. Should only take 2 or 3 max
         """
 
         from ADCDifferentialPi import ADCDifferentialPi as adc
@@ -29,6 +30,7 @@ class lcvr_learning:
         self.input_channel = input_channel
         self.signal = adc(i2c1,i2c2,sample_rate)
         self.funcgen = funcgen
+        self.max_attempts = max_attempts
         self.funcgen.write("C1:BSWV WVTP, SQUARE")
         self.funcgen.write("C1:BSWV FRQ, 2000") # Wave must be 2000 Hz Square wave, no exceptions
         self.funcgen.write("C1:BSWV AMP, 1")
@@ -68,12 +70,10 @@ class lcvr_learning:
         #So I want to just except and retry that should it happen. It should only take 1 or 2 attempts,
         #but I wanted to add *some* maximum in case for some reason there's some real issues.
         #This is repeated for any of the other SCPI read/write functions
-        attempts = 0
         max_attempts = 20
         delay = 1
 
         for attempt in range(max_attempts):
-
             try:
                 waveInfo = self.funcgen.query("C" + str(channel) + ":BSWV?")
                 break
@@ -141,10 +141,17 @@ class lcvr_learning:
         self.funcgen.write("C2:OUTP ON")
 
     def set_input_volts(self,target_volts,channel:int):
+        max_attempts = 20
         current_volts = self.get_wave_info(channel)[1]
         change_range = np.linspace(current_volts,target_volts,3)
         for i in range(len(change_range)):
-            self.funcgen.write("C"+str(channel)+":BSWV AMP, " + str(change_range[i]))
+            for attempt in range(max_attempts):
+                try:
+                    self.funcgen.write("C"+str(channel)+":BSWV AMP, " + str(change_range[i]))
+                    break
+                except:
+                    print("Read error, retrying")
+                    time.sleep(delay)
         self.outputs_on()
     
     def add_angle(self,training_data):
