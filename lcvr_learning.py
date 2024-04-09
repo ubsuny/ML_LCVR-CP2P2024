@@ -64,14 +64,34 @@ class lcvr_learning:
             freq: Frequency (in Hz)
             amp: Amplitude (in V)
         """
-    
-        waveInfo = self.funcgen.query("C" + str(channel) + ":BSWV?")
+        #Rarely the function generator gives a pipe (buffer?) error which can throw off the whole measurement set,
+        #So I want to just except and retry that should it happen. It should only take 1 or 2 attempts,
+        #but I wanted to add *some* maximum in case for some reason there's some real issues.
+        #This is repeated for any of the other SCPI read/write functions
+        attempts = 0
+        max_attempts = 20
+        delay = 1
+
+        for attempt in range(max_attempts):
+
+            try:
+                waveInfo = self.funcgen.query("C" + str(channel) + ":BSWV?")
+                break
+            except:
+                print("Read error, retrying")
+                time.sleep(delay)
 
         # This is weird, but sometimes the function generator returns a null statement
         # The first char of the proper return is "C", but not for the null
         while 1 < 2:
             if waveInfo[0] != "C":
-                waveInfo = self.funcgen.query("C" + str(channel) + ":BSWV?")
+                for attempt in range(max_attempts):
+                    try:
+                        waveInfo = self.funcgen.query("C" + str(channel) + ":BSWV?")
+                        break
+                    except:
+                        print("Read error, retrying")
+                        time.sleep(delay)
             else:
                 break
         
@@ -340,8 +360,8 @@ class optimize_model:
         X = x.reshape(-1, 1) 
         y = np.array(self.data_2d['Angle'])
         precision = 0.5
-        best_c = 284 #A priori I know that these are approximate values for c and gamma via testing, speeds up convergence
-        best_gamma = 14
+        best_c = 300 #A priori I know that these are approximate values for c and gamma via testing, speeds up convergence
+        best_gamma = 20
         c_step = 50
         gamma_step = 1
         min_step_size = 0.05
