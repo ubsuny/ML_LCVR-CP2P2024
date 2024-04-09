@@ -463,15 +463,15 @@ class optimize_model:
         NOTE: needs scale,range,offset from original data
         """
 
-        #Need to initialize the lcvrs for measurement. Note that input channels may change depending on your configuration
-        lcvrs = lcvr_learning(0x6a,0x6b)
-        lcvrs.set_input_volts(v1,1)
-
         measured_raw = []
         predicted = []
         v1 = self.data_2d['V1'][1]
         v2_low = self.data_2d['V2'].min()
         v2_high = self.data_2d['V2'].max()
+
+        #Need to initialize the lcvrs for measurement. Note that input channels may change depending on your configuration
+        lcvrs = lcvr_learning(0x6a,0x6b)
+        lcvrs.set_input_volts(v1,1)
 
         #Generates random V2 values to test the fit against
         v2_inputs = np.random.rand(measurements) * (v2_high - v2_low) + v2_low
@@ -568,6 +568,7 @@ class complete_fit_2d:
         print("Collecting 2D scan(s)")
         data_2d = lcvrs.get_2d_data(data,self.val_meas,num_axes = int(self.num_models))
 
+        lcvrs.close_connection()
         errors = []
         models = []
         for i in range(len(data_2d)):
