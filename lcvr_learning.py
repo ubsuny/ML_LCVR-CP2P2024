@@ -7,7 +7,7 @@ from sklearn.model_selection import GridSearchCV
 
 class lcvr_learning:
 
-    def __init__(self,i2c1,i2c2,input_channel = 1, sample_rate = 18, funcgen = "null",max_attempts = 20,attempt_delay = 1):
+    def __init__(self,i2c1 = 0x6a,i2c2 = 0x6b,input_channel = 1, sample_rate = 18, funcgen = "null",max_attempts = 20,attempt_delay = 1):
         """Initializes the object
 
         Args:
@@ -319,7 +319,7 @@ class lcvr_learning:
         return trainingdataframe
 
 
-    def get_2d_data(self, training_data, num_steps: int):
+    def get_2d_data(self, training_data, num_steps: int,num_axes = 1):
         """
         Gets a 2D fit for a *single wavelength* that can generate an arbitrary polarization with
         fixed V1. It takes the data and checks for a fixed V1 axis where max polarization
@@ -335,20 +335,28 @@ class lcvr_learning:
 
         #Finds V1 with max range
         print("Finding optimal V1")
-        max_range = [1,2]
+        min_range = 85
+        max_range = []
+        data_2d = []
         v1_vals = training_data['V1'].unique()
         for val in v1_vals:
             axis = training_data[training_data['V1'] == val]
             range = axis['Angle'].max() - axis['Angle'].min()
-            if range > max_range[1]:
-                max_range = [val,range]
+            if range > min_range:
+                max_range.append([val,range])
         
-        optimal_v1 = max_range[0]
+        sorted_range = max_range[max_range[:, 1].argsort()[::-1]]
+        if num_axes < len(sorted_range):
+            num_axes = len(sorted_range)
 
-        #Gets more thorough data along fixed V1 axis
-        print("Rescanning along new axis")
-        wavelength = training_data['Wavelength'][2]
-        data_2d = self.get_training_data(num_steps, wavelength, mode = "fixed_v1", v1 = optimal_v1)
+        for i in range(num_axes):
+            optimal_v1 = sorted_range[i][0]
+
+            #Gets more thorough data along fixed V1 axis
+            print("Rescanning along new axis")
+            wavelength = training_data['Wavelength'][2]
+            data = self.get_training_data(num_steps, wavelength, mode = "fixed_v1", v1 = optimal_v1)
+            data_2d.append(data)
 
         return data_2d
 
@@ -361,13 +369,13 @@ class optimize_model:
 
         self.data_2d = data_2d
 
-    def get_scale(self):
+    def get_scale(self,data_3d):
         """
         Needed to preserve scaling between training and validation
         """
 
-        top = self.data_2d['Out'].max()
-        bot = self.data_2d['Out'].min()
+        top = data_3d['Out'].max()
+        bot = data_3d['Out'].min()
         offset = abs(bot)
         range = top - bot
         scale = 90/range
@@ -445,7 +453,7 @@ class optimize_model:
 
         return model
     
-    def calc_rmse(self,model,measurements,v1,scale,range,offset):
+    def calc_rmse(self,model,measurements,scale,range,offset):
         """
         Finds the RMS error between the model's predictions and actual measurements using random sampling (in real time)
         of the polarization
@@ -458,6 +466,7 @@ class optimize_model:
 
         measured_raw = []
         predicted = []
+        v1 = self.data_2d['V1'][1]
         v2_low = self.data_2d['V2'].min()
         v2_high = self.data_2d['V2'].max()
 
@@ -493,14 +502,15 @@ class complete_fit_2d:
     to arbitrary polarization control hands free.
     """
 
-    def __init__(self,wavelength, num_measurements = 500, num_models = 5):
+    def __init__(self,wavelength, num_measurements = 500,val_meas = 200, num_models = 5):
         """
         Initializes the object
 
         Args:
             wavelength: Input wavelength in nm. This works for arb. wl so it is only important if you wish to record it
-            num_iterations: Number of measurements for training data. More measurements ~ more accuracy
+            num_measurements: Number of measurements for training data. More measurements ~ more accuracy
             num_models: Number of 2d models to compare against each other
+            val_meas: Number of validation measurements
         """
 
         self.wavelength = wavelength
@@ -523,10 +533,58 @@ class complete_fit_2d:
             data_2d: List of 2d data sets used for modelling
         """
 
-        errors = []
+        error = []
         for i in range(len(models)):
             optimize = optimize_model(data_2d[i])
-            scale,range,offset = optimize.get_scale
+            scale,range,offset = optimize.get_scale()
+            v1 = data_2d['V1'][2]
             
-            rmse = calc_rmse(models[i])
+            rmse, meas = optimize.calc_rmse(models[i],self.val_meas,v1,scale,range,offset)
+
+            error.append(rmse)
+        
+        return np.argmin(error)
+
+    def get_2d_model(self):
+        """
+        This runs the *whole* process outlined in data_collection.ipynb from start to finish. Takes ~30 minutes depending on
+        your measurement parameters.
+
+        Returns:
+            model: Optimized, best selected 2d model to get an arbitrary polarization angle
+
+        """
+
+        lcvrs = lcvr_learning()
+        print("Collecting initial 3D training data")
+        data = lcvrs.get_training_data(self.num_measurements,self.wavelength)
+
+        data.to_csv('training_data/temp/3d_training_data.csv')
+
+        print("Collecting 2D scan(s)")
+        data_2d = lcvrs.get_2d_data(data,self.val_meas,num_axes = self.num_models)
+
+        errors = []
+        models = []
+        for i in range(len(data_2d)):
+            print("Optimizing 2D Model #" + str(i))
+            optimizer = optimize_model(data_2d[i])
+            scale,range,offset = optimizer.get_scale(data) #This is sloppy implementation overall, would like to rework
+            best_c, best_gamma = optimizer.optimize_model_2d()
+            model = optimizer.fit_2d(best_c,best_gamma)
+            models.append(model)
+            rmse, error_meas = optimizer.calc_rmse(model,self.val_meas,scale,range,offset)
+            errors.append(rmse)
+        
+        min_index = np.argmin(errors)
+        best_model = models[min_index]
+
+        print("Returning model with RMSE " + str(errors[min_index]) + " degrees")
+
+        return best_model
+            
+            
+        
+
+
 
