@@ -347,7 +347,7 @@ class lcvr_learning:
         
         sorted_range = sorted(max_range, key=lambda x: x[1], reverse=True)
         if num_axes < len(sorted_range):
-            num_axes = len(sorted_range)
+            num_axes = int(len(sorted_range))
 
         for i in range(num_axes):
             optimal_v1 = sorted_range[i][0]
@@ -563,7 +563,7 @@ class complete_fit_2d:
         data.to_csv('training_data/temp/3d_training_data.csv')
 
         print("Collecting 2D scan(s)")
-        data_2d = lcvrs.get_2d_data(data,self.val_meas,num_axes = self.num_models)
+        data_2d = lcvrs.get_2d_data(data,self.val_meas,num_axes = int(self.num_models))
 
         errors = []
         models = []
