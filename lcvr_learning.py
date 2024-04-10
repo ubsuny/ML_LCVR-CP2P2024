@@ -563,8 +563,6 @@ class complete_fit_2d:
         print("Collecting initial 3D training data")
         data = lcvrs.get_training_data(self.num_measurements,self.wavelength)
 
-        data.to_csv('training_data/temp/3d_training_data.csv')
-
         print("Collecting 2D scan(s)")
         data_2d = lcvrs.get_2d_data(data,self.val_meas,num_axes = int(self.num_models))
 
