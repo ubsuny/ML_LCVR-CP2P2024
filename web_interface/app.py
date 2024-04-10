@@ -1,3 +1,7 @@
+#BOOT W/ gunicorn --worker-class eventlet -w 1 -b 0.0.0.0:5000 app:app --timeout 200
+#IF DOESN'T OCCUR AUTOMATICALLY
+
+
 from threading import Lock
 from flask import Flask, render_template, session, request, \
     copy_current_request_context
