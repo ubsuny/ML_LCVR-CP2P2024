@@ -38,6 +38,7 @@ lcvrs = lcl.lcvr_learning()
 lcvrs.close_connection()
 with open('models/213.pkl', 'rb') as f:
     model = pickle.load(f)
+v1 = 1
 
 def background_thread():
     """Example of how to send server generated events to clients.not using it"""
@@ -152,7 +153,12 @@ def set_model(message):
     if os.path.exists("models/" + str(wavelength) + ".pkl"): 
         with open('models/'+ str(wavelength)+'.pkl', 'rb') as f:
             model = pickle.load(f)
-        emit('model_success', 'Model set successfully, angle can now be set') 
+        data_2d = pd.read_csv("data/"+str(wavelength)+"_2d.csv")
+        v1 = data_2d['V1'][2]
+        lcvrs.open_connection()
+        lcvrs.set_input_volts(v1,1)
+        lcvrs.close_connection()
+        emit('model_success', 'Model and V1 set successfully, angle can now be set') 
 
     else:
         # Option 2: Print to HTML
