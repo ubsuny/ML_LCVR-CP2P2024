@@ -588,6 +588,10 @@ class complete_fit_2d:
         best_model = models[min_index]
         best_v1 = voltages[min_index]
 
+        self.data_3d = data
+        self.data_2d = data_2d[min_index]
+        self.best_v1 = best_v1
+
         print("Returning model with RMSE " + str(errors[min_index]) + " degrees at " + str(best_v1) + " Volts")
 
         return best_model
