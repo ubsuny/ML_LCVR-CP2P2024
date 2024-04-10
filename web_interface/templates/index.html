@@ -111,17 +111,14 @@
                 return false;
             });
 
-            $('form#getdata').submit(function(event) {
-                
-                socket.emit('wavelength', {data: $('#input_wavelength').val()});
-                return false;
+                $('#dataButton').click(function() {
+                socket.emit('getdata', {data: $('#input_wavelength').val()});
             });
 
 
             socket.on('status',function(update){
                 $('#status').text('status#' + update.status1).html();
             });
-
 
             $('form#disconnect').submit(function(event) {
                 socket.emit('disconnect_request');
@@ -140,11 +137,10 @@
       <h3>If you do not have training/calibration data for your wavelength, press this button to get it (takes ~30 minutes)</h3>
     </p>
 
+
     <h2>Measure Data/Get Model:</h2>
-    <form id="Wavelength" method="POST" action='#'>
-        <input type="text" name="input_wavelength" id="input_wavelength" pattern="[0-9]+" placeholder="in nm">
-        <input type="submit" value="Push n Echo">
-    </form>
+    <input type="text" name="input_wavelength" id="input_wavelength" pattern="[0-9]+" placeholder="in nm">
+    <button id="dataButton">Push n Echo</button>
 
 
     <h2>Ch1 Controls:</h2>

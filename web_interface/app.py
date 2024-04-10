@@ -6,10 +6,14 @@ from flask_socketio import SocketIO, emit, join_room, leave_room, \
 import lcvr_learning as lcl
 import pandas as pd
 import pickle
+import eventlet
+eventlet.monkey_patch()
+from gevent.pywsgi import WSGIServer
+from geventwebsocket.handler import WebSocketHandler
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
 # the best option based on installed packages.
-async_mode = None
+async_mode = 'eventlet'
 from engineio.payload import Payload
 
 Payload.max_decode_packets = 1500
@@ -18,10 +22,11 @@ Payload.max_decode_packets = 1500
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, async_mode=async_mode)
-thread = None
+thread = 'eventlet'
 thread_lock = Lock()
 
 lcvrs = lcl.lcvr_learning()
+lcvrs.close_connection()
 
 def background_thread():
     """Example of how to send server generated events to clients.not using it"""
@@ -57,9 +62,9 @@ def ampl_1(message):
     inst = message['data']
     lcvrs.set_input_volts(inst,1)
     v1, f1 = lcvrs.get_wave_info(1)
-    stat1 = str("CH1 Voltage: " + str(v1) + " CH1 Frequency: " + str(f1))
+    stat1 = str("CH1 Voltage:  CH1 Frequency: ")
     emit('status',
-                {'status1': stat1()})
+                {'status1': stat1})
     
 
 @socketio.event
@@ -78,9 +83,9 @@ def ampl_2(message):
     inst = message['data']
     lcvrs.set_input_volts(inst,2)
     v2, f2 = lcvrs.get_wave_info(2)
-    stat1 = str("CH2 Voltage: " + str(v1) + " CH2 Frequency: " + str(f1))
+    stat1 = str("CH2 Voltage: " + str(v2) + " CH2 Frequency: " + str(f2))
     emit('status',
-                {'status1': stat1()})
+                {'status1': stat1})
     
     
 @socketio.event
@@ -99,25 +104,26 @@ def wvlngth(message):
     
     print(angle,wavelength)    
 
-@socketio.event
+@socketio.on('getdata')
 def getdata(message):
     session['receive_count'] = session.get('receive_count', 0) + 1
     emit('my_response',
          {'data': message['data'], 'count': session['receive_count']})
     
-    
+    print("Input Received")
     wavelength=message['data']
-    lcvrs.close_connection()
     print("Starting data taking, please be patient")
-    modeller = lcl.complete_fit_2d(wavelength,num_measurements=200,val_meas=300,num_models=1)
+    modeller = lcl.complete_fit_2d(wavelength,num_measurements=100,val_meas=100,num_models=1)
     model = modeller.get_2d_model()
     with open(str(wavelength) + '.pkl', 'wb') as f:
         pickle.dump(model, f)
 
     data_2d = pd.DataFrame(modeller.data_2d)
-    data_2d.to_csv(str(wavelength) + '2d.csv')
+    data_2d.to_csv(str(wavelength) + '_2d.csv')
     data_3d = modeller.data_3d
-    data_3d.to_csv(str(wavelength) + '3d.csv')
+    data_3d.to_csv(str(wavelength) + '_3d.csv')
+
+    #lcvrs = lcl.lcvr_learning()
     
     print("Modelling Complete, Please use the interface at the collected wavelength")   
 
