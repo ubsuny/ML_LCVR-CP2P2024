@@ -4,6 +4,7 @@ from flask import Flask, render_template, session, request, \
 from flask_socketio import SocketIO, emit, join_room, leave_room, \
     close_room, rooms, disconnect
 import lcvr_learning as lcl
+import pandas as pd
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
 # the best option based on installed packages.
@@ -96,6 +97,24 @@ def wvlngth(message):
     funcGen.ch2_on()
     
     print(angle,wavelength)    
+
+@socketio.event
+def getdata(message):
+    session['receive_count'] = session.get('receive_count', 0) + 1
+    emit('my_response',
+         {'data': message['data'], 'count': session['receive_count']})
+    
+    
+    wavelength=message['data']
+    lcvrs.close_connection()
+    print("Starting data taking, please be patient")
+    modeller = lcl.complete_fit_2d(wavlength,num_measurements=200,val_meas=300,num_models=1)
+    funcGen.sq_wave2(2000,inerp.ch1volt(wavelength))
+    funcGen.sq_wave(2000,interp.voltage(angle,wavelength))
+    funcGen.ch1_on()
+    funcGen.ch2_on()
+    
+    print(angle,wavelength)   
 
 
 '''
