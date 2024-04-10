@@ -3,12 +3,11 @@ from flask import Flask, render_template, session, request, \
     copy_current_request_context
 from flask_socketio import SocketIO, emit, join_room, leave_room, \
     close_room, rooms, disconnect
-from sglnt import fg
+import lcvr_learning as lcl
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
 # the best option based on installed packages.
 async_mode = None
-from interpol import interp
 from engineio.payload import Payload
 
 Payload.max_decode_packets = 1500
@@ -20,8 +19,7 @@ socketio = SocketIO(app, async_mode=async_mode)
 thread = None
 thread_lock = Lock()
 
-funcGen=fg()
-inerp=interp()
+lcvrs = lcl.lcvr_learning()
 
 def background_thread():
     """Example of how to send server generated events to clients.not using it"""
@@ -55,9 +53,9 @@ def ampl_1(message):
     emit('my_response',
          {'data': message['data'], 'count': session['receive_count']})
     inst = message['data']
-    funcGen.sq_wave(2000,inst)
-    stat1=funcGen.current_ch1
-    funcGen.ch1_on()
+    lcvrs.set_input_volts(inst,1)
+    v1, f1 = lcvrs.get_wave_info(1)
+    stat1 = str("CH1 Voltage: " + str(v1) + " CH1 Frequency: " + str(f1))
     emit('status',
                 {'status1': stat1()})
     
@@ -76,9 +74,9 @@ def ampl_2(message):
     emit('my_response',
          {'data': message['data'], 'count': session['receive_count']})
     inst = message['data']
-    funcGen.sq_wave2(2000,inst)
-    stat1=funcGen.current_ch2
-    
+    lcvrs.set_input_volts(inst,2)
+    v2, f2 = lcvrs.get_wave_info(2)
+    stat1 = str("CH2 Voltage: " + str(v1) + " CH2 Frequency: " + str(f1))
     emit('status',
                 {'status1': stat1()})
     
