@@ -3,7 +3,12 @@ from flask import Flask, render_template, session, request, \
     copy_current_request_context
 from flask_socketio import SocketIO, emit, join_room, leave_room, \
     close_room, rooms, disconnect
+import sys
+import os
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(parent_dir)
 import lcvr_learning as lcl
+sys.path.remove(parent_dir) 
 import pandas as pd
 import pickle
 import eventlet
@@ -60,8 +65,10 @@ def ampl_1(message):
     emit('my_response',
          {'data': message['data'], 'count': session['receive_count']})
     inst = message['data']
+    lcvrs.open_connection()
     lcvrs.set_input_volts(inst,1)
     v1, f1 = lcvrs.get_wave_info(1)
+    lcvrs.close_connection()
     stat1 = str("CH1 Voltage:  CH1 Frequency: ")
     emit('status',
                 {'status1': stat1})
@@ -81,8 +88,10 @@ def ampl_2(message):
     emit('my_response',
          {'data': message['data'], 'count': session['receive_count']})
     inst = message['data']
+    lcvrs.open_connection()
     lcvrs.set_input_volts(inst,2)
     v2, f2 = lcvrs.get_wave_info(2)
+    lcvrs.close_connection()
     stat1 = str("CH2 Voltage: " + str(v2) + " CH2 Frequency: " + str(f2))
     emit('status',
                 {'status1': stat1})
@@ -110,6 +119,7 @@ def getdata(message):
     emit('my_response',
          {'data': message['data'], 'count': session['receive_count']})
     
+    lcvrs.close_connection()
     print("Input Received")
     wavelength=message['data']
     print("Starting data taking, please be patient")
@@ -123,8 +133,6 @@ def getdata(message):
     data_3d = modeller.data_3d
     data_3d.to_csv(str(wavelength) + '_3d.csv')
 
-    #lcvrs = lcl.lcvr_learning()
-    
     print("Modelling Complete, Please use the interface at the collected wavelength")   
 
 
