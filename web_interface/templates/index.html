@@ -119,6 +119,9 @@
                 socket.emit('set_model', {data: $('#wavs').val()});
             });
 
+            $('#angButton').click(function() {
+                socket.emit('set_angle', {data: $('#ang').val()});
+            });
 
             socket.on('status',function(update){
                 $('#status').text('status#' + update.status1).html();
@@ -130,12 +133,17 @@
             });
 
             socket.on('model_success', (msg) => {
-                let messageElement = document.getElementById('message_area'); 
+                let messageElement = document.getElementById('wave_message_area'); 
                 messageElement.textContent = msg; 
             });
 
             socket.on('model_fail', (msg) => {
-                let messageElement = document.getElementById('message_area'); 
+                let messageElement = document.getElementById('wave_message_area'); 
+                messageElement.textContent = msg; 
+            });
+
+            socket.on('ang_set', (msg) => {
+                let messageElement = document.getElementById('ang_message_area'); 
                 messageElement.textContent = msg; 
             });
 
@@ -197,12 +205,13 @@
     <input type="text" name="wavs" id="wavs" pattern="[0-9]+" placeholder="in nm">
     <button id="waveButton">Push n Echo</button>
 
-    <div id="message_area"></div>
+    <div id="wave_message_area"></div>
    
-    <form id="angle" method="POST" action='#'>
-        <input type="number" name="angle_data" max="180" min="0" id="angle_data" placeholder="Polarization Angle ">
-        <input type="submit" value="Push n Echo">
-    </form>
+    <h3>Set Polarization Angle:</h3>
+    <input type="text" name="ang" id="ang" pattern="[0-9]+" placeholder="in degrees">
+    <button id="angButton">Push n Echo</button>
+
+    <div id="ang_message_area"></div>
 
 <br>
     <form id="disconnect" method="POST" action="#">

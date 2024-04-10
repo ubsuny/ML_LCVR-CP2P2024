@@ -8,6 +8,7 @@ from flask import Flask, render_template, session, request, \
 from flask_socketio import SocketIO, emit, join_room, leave_room, \
     close_room, rooms, disconnect
 import sys
+import numpy as np
 import os
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(parent_dir)
@@ -38,7 +39,7 @@ lcvrs = lcl.lcvr_learning()
 lcvrs.close_connection()
 with open('models/213.pkl', 'rb') as f:
     model = pickle.load(f)
-v1,scale,range,offset = 0, 0, 0, 0 #Easier to initialize for some reason...
+x_model = np.linspace(0.6, 10, 2000).reshape(-1, 1) # Inputs for setting V2
 
 
 def background_thread():
@@ -160,14 +161,35 @@ def set_model(message):
         lcvrs.open_connection()
         lcvrs.set_input_volts(v1,1)
         lcvrs.close_connection()
+        global scaler,scale,rang,offset,model_arr
         scaler = lcl.optimize_model(data_3d)
-        scale,range,offset = scaler.get_scale(data_3d)
+        scale,rang,offset = scaler.get_scale(data_3d)
+        model_arr = np.array(model.predict(x_model))
         emit('model_success', 'Model and V1 set successfully, angle can now be set') 
 
     else:
         # Option 2: Print to HTML
         msg = message.get('message', 'No model with this wavelength, please calibrate above')
         emit('model_fail', msg)
+
+@socketio.on('set_angle')
+def set_angle(message):
+    session['receive_count'] = session.get('receive_count', 0) + 1
+    emit('my_response',
+         {'data': message['data'], 'count': session['receive_count']})
+
+    des_angle = float(message['data'])
+    abs_diffs = np.abs(model_arr - des_angle)
+    closest_index = np.argmin(abs_diffs)
+    closest_v2 = x_model[closest_index][0]
+
+    lcvrs.open_connection()
+    lcvrs.set_input_volts(closest_v2,2)
+    lcvrs.close_connection()
+
+    msg = "Angle set to " + str(des_angle)
+
+    emit('ang_set', msg)
 
 '''
 
