@@ -38,7 +38,8 @@ lcvrs = lcl.lcvr_learning()
 lcvrs.close_connection()
 with open('models/213.pkl', 'rb') as f:
     model = pickle.load(f)
-v1 = 1
+v1,scale,range,offset = 0, 0, 0, 0 #Easier to initialize for some reason...
+
 
 def background_thread():
     """Example of how to send server generated events to clients.not using it"""
@@ -154,10 +155,13 @@ def set_model(message):
         with open('models/'+ str(wavelength)+'.pkl', 'rb') as f:
             model = pickle.load(f)
         data_2d = pd.read_csv("data/"+str(wavelength)+"_2d.csv")
+        data_3d = pd.read_csv("data/"+str(wavelength)+"_3d.csv")
         v1 = data_2d['V1'][2]
         lcvrs.open_connection()
         lcvrs.set_input_volts(v1,1)
         lcvrs.close_connection()
+        scaler = lcl.optimize_model(data_3d)
+        scale,range,offset = scaler.get_scale(data_3d)
         emit('model_success', 'Model and V1 set successfully, angle can now be set') 
 
     else:
