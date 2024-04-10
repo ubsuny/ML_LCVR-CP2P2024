@@ -37,8 +37,6 @@ thread_lock = Lock()
 
 lcvrs = lcl.lcvr_learning()
 lcvrs.close_connection()
-with open('models/213.pkl', 'rb') as f:
-    model = pickle.load(f)
 x_model = np.linspace(0.6, 10, 2000).reshape(-1, 1) # Inputs for setting V2
 
 
