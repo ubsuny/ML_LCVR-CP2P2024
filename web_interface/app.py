@@ -5,6 +5,7 @@ from flask_socketio import SocketIO, emit, join_room, leave_room, \
     close_room, rooms, disconnect
 import lcvr_learning as lcl
 import pandas as pd
+import pickle
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
 # the best option based on installed packages.
@@ -109,10 +110,14 @@ def getdata(message):
     lcvrs.close_connection()
     print("Starting data taking, please be patient")
     modeller = lcl.complete_fit_2d(wavlength,num_measurements=200,val_meas=300,num_models=1)
-    funcGen.sq_wave2(2000,inerp.ch1volt(wavelength))
-    funcGen.sq_wave(2000,interp.voltage(angle,wavelength))
-    funcGen.ch1_on()
-    funcGen.ch2_on()
+    model = modeller.get_2d_model()
+    with open(str(wavelength) + '.pkl', 'wb') as f:
+        pickle.dump(model, f)
+
+    data_2d = pd.DataFrame(modeller.data_2d)
+    data_2d.to_csv(str(wavelength) + '2d.csv')
+    data_3d = modeller.data_3d
+    data_3d.to_csv(str(wavelength) + '3d.csv')
     
     print(angle,wavelength)   
 
