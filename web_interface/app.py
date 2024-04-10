@@ -109,7 +109,7 @@ def getdata(message):
     wavelength=message['data']
     lcvrs.close_connection()
     print("Starting data taking, please be patient")
-    modeller = lcl.complete_fit_2d(wavlength,num_measurements=200,val_meas=300,num_models=1)
+    modeller = lcl.complete_fit_2d(wavelength,num_measurements=200,val_meas=300,num_models=1)
     model = modeller.get_2d_model()
     with open(str(wavelength) + '.pkl', 'wb') as f:
         pickle.dump(model, f)
@@ -119,7 +119,7 @@ def getdata(message):
     data_3d = modeller.data_3d
     data_3d.to_csv(str(wavelength) + '3d.csv')
     
-    print(angle,wavelength)   
+    print("Modelling Complete, Please use the interface at the collected wavelength")   
 
 
 '''
