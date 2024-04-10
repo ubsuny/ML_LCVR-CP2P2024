@@ -36,6 +36,8 @@ thread_lock = Lock()
 
 lcvrs = lcl.lcvr_learning()
 lcvrs.close_connection()
+with open('models/213.pkl', 'rb') as f:
+    model = pickle.load(f)
 
 def background_thread():
     """Example of how to send server generated events to clients.not using it"""
@@ -139,6 +141,23 @@ def getdata(message):
 
     print("Modelling Complete, Please use the interface at the collected wavelength")   
 
+@socketio.on('set_model')
+def set_model(message):
+    session['receive_count'] = session.get('receive_count', 0) + 1
+    emit('my_response',
+         {'data': message['data'], 'count': session['receive_count']})
+    
+    wavelength=int(message['data'])
+
+    if os.path.exists("models/" + str(wavelength) + ".pkl"): 
+        with open('models/'+ str(wavelength)+'.pkl', 'rb') as f:
+            model = pickle.load(f)
+        emit('model_success', 'Model set successfully, angle can now be set') 
+
+    else:
+        # Option 2: Print to HTML
+        msg = message.get('message', 'No model with this wavelength, please calibrate above')
+        emit('model_fail', msg)
 
 '''
 
