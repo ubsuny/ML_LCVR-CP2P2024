@@ -4,6 +4,9 @@ import numpy as np
 import pandas as pd
 from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
+from skopt import BayesSearchCV
+from skopt.space import Real
+
 
 class lcvr_learning:
 
@@ -455,6 +458,30 @@ class optimize_model:
         model.fit(X,y)
 
         return model
+    
+    def optimize_model_bayes(self):
+        """
+        Using scikit optimize for Bayesnian parameter tuning, should be faster/more accurate than old method
+        """
+
+        X = self.data_2d['V2']
+        y = self.data_2d['Angle']
+
+        search_space = {
+        'C': Real(1e-2, 1e3, prior='log-uniform'), 
+        'gamma': Real(1e-3, 1e2, prior='log-uniform')}
+
+        opt = BayesSearchCV(SVR(kernel='rbf'),search_space,n_iter=30,cv=5,random_state=13)
+
+        opt.fit(X,y)
+
+        best_c = opt.best_params_['C']
+        best_gamma = opt.best_params_['gamma']
+
+        return best_c,best_gamma
+
+
+
     
     def calc_rmse(self,model,measurements,scale,range,offset):
         """
