@@ -111,22 +111,44 @@
                 return false;
             });
 
-            $('form#getdata').submit(function(event) {
-                
-                socket.emit('wavelength', {data: $('#input_wavelength').val()});
-                return false;
+                $('#dataButton').click(function() {
+                socket.emit('getdata', {data: $('#input_wavelength').val()});
             });
 
+            $('#waveButton').click(function() {
+                socket.emit('set_model', {data: $('#wavs').val()});
+            });
+
+            $('#angButton').click(function() {
+                socket.emit('set_angle', {data: $('#ang').val()});
+            });
 
             socket.on('status',function(update){
                 $('#status').text('status#' + update.status1).html();
             });
 
-
             $('form#disconnect').submit(function(event) {
                 socket.emit('disconnect_request');
                 return false;
             });
+
+            socket.on('model_success', (msg) => {
+                let messageElement = document.getElementById('wave_message_area'); 
+                messageElement.textContent = msg; 
+            });
+
+            socket.on('model_fail', (msg) => {
+                let messageElement = document.getElementById('wave_message_area'); 
+                messageElement.textContent = msg; 
+            });
+
+            socket.on('ang_set', (msg) => {
+                let messageElement = document.getElementById('ang_message_area'); 
+                messageElement.textContent = msg; 
+            });
+
+
+
         });
     </script>
 </head>
@@ -140,11 +162,10 @@
       <h3>If you do not have training/calibration data for your wavelength, press this button to get it (takes ~30 minutes)</h3>
     </p>
 
+
     <h2>Measure Data/Get Model:</h2>
-    <form id="Wavelength" method="POST" action='#'>
-        <input type="text" name="input_wavelength" id="input_wavelength" pattern="[0-9]+" placeholder="in nm">
-        <input type="submit" value="Push n Echo">
-    </form>
+    <input type="text" name="input_wavelength" id="input_wavelength" pattern="[0-9]+" placeholder="in nm">
+    <button id="dataButton">Push n Echo</button>
 
 
     <h2>Ch1 Controls:</h2>
@@ -180,14 +201,17 @@
     
     
     
-    <form id="wvlngth" method="POST" action='#'>
-        <input type="number" name="wvlngth_data" max="700" min="490" id="wvlngth_data" placeholder="Wavelength ">
-    </form>
+    <h3>Set Wavelength:</h3>
+    <input type="text" name="wavs" id="wavs" pattern="[0-9]+" placeholder="in nm">
+    <button id="waveButton">Push n Echo</button>
+
+    <div id="wave_message_area"></div>
    
-    <form id="angle" method="POST" action='#'>
-        <input type="number" name="angle_data" max="180" min="0" id="angle_data" placeholder="Polarization Angle ">
-        <input type="submit" value="Push n Echo">
-    </form>
+    <h3>Set Polarization Angle:</h3>
+    <input type="text" name="ang" id="ang" pattern="[0-9]+" placeholder="in degrees">
+    <button id="angButton">Push n Echo</button>
+
+    <div id="ang_message_area"></div>
 
 <br>
     <form id="disconnect" method="POST" action="#">
