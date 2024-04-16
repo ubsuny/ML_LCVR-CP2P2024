@@ -37,6 +37,7 @@ thread_lock = Lock()
 
 lcvrs = lcl.lcvr_learning()
 lcvrs.close_connection()
+wavelength = 0
 x_model = np.linspace(0.6, 10, 2000).reshape(-1, 1) # Inputs for setting V2
 
 
@@ -148,6 +149,7 @@ def set_model(message):
     emit('my_response',
          {'data': message['data'], 'count': session['receive_count']})
     
+    global wavelength
     wavelength=int(message['data'])
 
     if os.path.exists("models/" + str(wavelength) + ".pkl"): 
@@ -166,7 +168,7 @@ def set_model(message):
         emit('model_success', 'Model and V1 set successfully, angle can now be set') 
 
     else:
-        # Option 2: Print to HTML
+        wavelength = 0
         msg = message.get('message', 'No model with this wavelength, please calibrate above')
         emit('model_fail', msg)
 
@@ -176,18 +178,22 @@ def set_angle(message):
     emit('my_response',
          {'data': message['data'], 'count': session['receive_count']})
 
-    des_angle = float(message['data'])
-    abs_diffs = np.abs(model_arr - des_angle)
-    closest_index = np.argmin(abs_diffs)
-    closest_v2 = x_model[closest_index][0]
+    if wavelength == 0:
+        msg = "Error: Need to set wavelength before setting polarization angle!"
+        emit('ang_set', msg)
+    else:
+        des_angle = float(message['data'])
+        abs_diffs = np.abs(model_arr - des_angle)
+        closest_index = np.argmin(abs_diffs)
+        closest_v2 = x_model[closest_index][0]
 
-    lcvrs.open_connection()
-    lcvrs.set_input_volts(closest_v2,2)
-    lcvrs.close_connection()
+        lcvrs.open_connection()
+        lcvrs.set_input_volts(closest_v2,2)
+        lcvrs.close_connection()
 
-    msg = "Angle set to " + str(des_angle)
+        msg = "Angle set to " + str(des_angle)
 
-    emit('ang_set', msg)
+        emit('ang_set', msg)
 
 '''
 
@@ -209,18 +215,19 @@ def angle(message):
 
 @socketio.event
 def disconnect_request():
-    @copy_current_request_context
-    def can_disconnect():
-        disconnect()
+    
+    lcvrs.open_connection()
+    lcvrs.outputs_off()
+    lcvrs.close_connection()
 
 
     session['receive_count'] = session.get('receive_count', 0) + 1
     # for this emit we use a callback function
     # when the callback function is invoked we know that the message has been
     # received and it is safe to disconnect
-    emit('my_response',
-         {'data': 'Disconnected!', 'count': session['receive_count']},
-         callback=can_disconnect)
+    msg = "Successfully turned off"
+
+    emit('off_msg', msg)
     
 
 

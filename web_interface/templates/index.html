@@ -147,6 +147,11 @@
                 messageElement.textContent = msg; 
             });
 
+            socket.on('off_msg', (msg) => {
+                let messageElement = document.getElementById('off_message_area'); 
+                messageElement.textContent = msg; 
+            });
+
 
 
         });
@@ -167,26 +172,18 @@
     <input type="text" name="input_wavelength" id="input_wavelength" pattern="[0-9]+" placeholder="in nm">
     <button id="dataButton">Push n Echo</button>
 
+    <h1>Direct Amplitude Control</h1>
+    <p>
+      <h3>Use these if you'd like to set the voltage manually. Note it's limited at 10 V for safety.</h3>
+    </p>
 
     <h2>Ch1 Controls:</h2>
-    <form id="freq_1" method="POST" action='#'>
-        <input type="text" name="freq_1_data" id="freq_1_data" pattern="[0-9]+" placeholder="in KHz ">
-        <input type="submit" value="Push n Echo">
-    </form>
     <form id="ampl_1" method="POST" action='#'>
         <input type="number" name="ampl_1_data" step=".1" max="8" min="0.1" id="ampl_1_data"  placeholder="Amplitude ">
         <input type="submit" value="Push n Echo">
     </form>
     <br>
     <h2>Ch2 Controls:</h2>
-
-    <form id="freq_2" method="POST" pattern="[0-9]+" action='#'>
-        <input type="text" name="freq_2_data" id="freq_2_data" placeholder="in KHz ">
-        <input type="submit" value="Push n Echo">
-    </form>
-
-
-
     <form id="ampl_2" method="POST" action='#'>
         <input type="number" name="ampl_2_data" step=".1" max="8" min="0.1" id="ampl_2_data" placeholder="Amplitude ">
         <input type="submit" value="Push n Echo">
@@ -198,7 +195,8 @@
 
     <br>
     <h2>Wavelength and Polarization Angle</h2>
-    
+    <h3>Set the current wavelength, then if a model exists you can set the polarization angle</h3>
+    <h4>(Wavelength only needs to be set once per session)</h4>
     
     
     <h3>Set Wavelength:</h3>
@@ -215,11 +213,14 @@
 
 <br>
     <form id="disconnect" method="POST" action="#">
-        <input type="submit" value="Disconnect and Turn Off">
+        <input type="submit" value="Turn Off">
     </form>
     <br>
     status is :<ul id="status"></ul>   <br>   
     <h2>Log:</h2>
     <div id="log"></div>
+
+    <div id="off_message_area"></div>
+
 </body>
 </html>
