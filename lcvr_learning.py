@@ -365,6 +365,96 @@ class lcvr_learning:
             data_2d.append(data)
 
         return data_2d
+    
+    def get_training_max_min(self, num_iterations: int, wavelength,gain = 4):
+        """
+        New/better version of get_training_data that ensures that the *actual* max/min polarization angles are found
+        Found before that for certain wavelengths this would not happen due to bad luck... So this should
+        ensure that bad luck can't happen
+        """
+        delay = 1
+        readmode = 'single'
+        min_volt = 0.6
+        volt_range = np.linspace(min_volt,10,num_iterations)
+        trainingdata = []
+
+        for i in range(num_iterations):
+            self.check_params()
+            ch1_volts = volt_range[i]
+            ch2_volts = self.get_wave_info(2)[1]
+            self.set_input_volts(ch1_volts,1)
+            self.set_input_volts(ch2_volts,2)
+            time.sleep(delay)
+            new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage(mode = readmode)}
+            trainingdata.append(new_row)
+        
+        out_arr = np.array([item['Out'] for item in trainingdata])
+        v1_arr = np.array([item['V1'] for item in trainingdata])
+        volt_step = v1_arr[1]-v1_arr[0]
+        v2_arr = np.array([item['V2'] for item in trainingdata])
+        ind_max = np.argmax(out_arr)
+        curr_max = np.max(out_arr)
+        v1_max = v1_arr[ind_max]
+        v2_max = v2_arr[ind_max]
+        out_grid = np.array([
+        [0,0,0]
+        [curr_max*2,curr_max,0]
+        [0,0,0]
+        ])
+        new_grid = np.array([
+        [0,0,0]
+        [0,0,0]
+        [0,0,0]
+        ])
+        v1_grid = [
+            [v1_max - volt_step, v1_max, v1_max + volt_step]
+            [v1_max - volt_step, v1_max, v1_max + volt_step]
+            [v1_max - volt_step, v1_max, v1_max + volt_step]
+        ]
+        v2_grid = [
+            [v2_max + volt_step,v2_max + volt_step,v2_max + volt_step]
+            [v2_max,v2_max,v2_max]
+            [v2_max - volt_step,v2_max - volt_step,v2_max - volt_step]
+        ]
+        while np.max(out_grid) != out_grid[1][1]:
+            for i in range(3):
+                for j in range(3):
+                    self.check_params()
+                    ch1_volts = v1_grid[i][j]
+                    ch2_volts = v2_grid[i][j]
+                    print("V1: " + str(ch1_volts) + " V2: " + str(ch2_volts))
+                    self.set_input_volts(ch1_volts,1)
+                    self.set_input_volts(ch2_volts,2)
+                    time.sleep(delay)
+                    out = self.get_voltage(mode = readmode)
+                    new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': out}
+                    trainingdata.append(new_row)
+                    new_grid[i][j] = out
+            
+            out_grid = new_grid
+            flattened_index = np.argmax(out_grid)
+            row_max, col_max = np.unravel_index(flattened_index, out_grid.shape)
+            curr_max = out_grid[row_max][col_max]
+            v1_max = v1_grid[row_max][col_max]
+            v2_max = v2_arr[row_max][col_max]
+            v1_grid = [
+            [v1_max - volt_step, v1_max, v1_max + volt_step]
+            [v1_max - volt_step, v1_max, v1_max + volt_step]
+            [v1_max - volt_step, v1_max, v1_max + volt_step]
+            ]
+            v2_grid = [
+            [v2_max + volt_step,v2_max + volt_step,v2_max + volt_step]
+            [v2_max,v2_max,v2_max]
+            [v2_max - volt_step,v2_max - volt_step,v2_max - volt_step]
+            ]
+            
+        training_df = pd.DataFrame(trainingdata)
+
+        return training_df
+
+        
+
+
 
     def close_connection(self):
         self.funcgen.close()
