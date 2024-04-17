@@ -436,11 +436,11 @@ class lcvr_learning:
             row_max, col_max = np.unravel_index(flattened_index, out_grid.shape)
             curr_max = out_grid[row_max][col_max]
             v1_max = v1_grid[row_max][col_max]
-            v2_max = v2_arr[row_max][col_max]
+            v2_max = v2_grid[row_max][col_max]
             v1_grid = [
             [v1_max - volt_step, v1_max, v1_max + volt_step],
             [v1_max - volt_step, v1_max, v1_max + volt_step],
-            [v1_max - volt_step, v1_max, v1_max + volt_step],
+            [v1_max - volt_step, v1_max, v1_max + volt_step]
             ]
             v2_grid = [
             [v2_max + volt_step,v2_max + volt_step,v2_max + volt_step],
