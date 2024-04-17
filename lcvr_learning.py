@@ -397,23 +397,23 @@ class lcvr_learning:
         v1_max = v1_arr[ind_max]
         v2_max = v2_arr[ind_max]
         out_grid = np.array([
-        [0,0,0]
-        [curr_max*2,curr_max,0]
-        [0,0,0]
+        [0,0,0],
+        [curr_max*2,curr_max,0],
+        [0,0,0],
         ])
         new_grid = np.array([
-        [0,0,0]
-        [0,0,0]
-        [0,0,0]
+        [0,0,0],
+        [0,0,0],
+        [0,0,0],
         ])
         v1_grid = [
-            [v1_max - volt_step, v1_max, v1_max + volt_step]
-            [v1_max - volt_step, v1_max, v1_max + volt_step]
-            [v1_max - volt_step, v1_max, v1_max + volt_step]
+            [v1_max - volt_step, v1_max, v1_max + volt_step],
+            [v1_max - volt_step, v1_max, v1_max + volt_step],
+            [v1_max - volt_step, v1_max, v1_max + volt_step],
         ]
         v2_grid = [
-            [v2_max + volt_step,v2_max + volt_step,v2_max + volt_step]
-            [v2_max,v2_max,v2_max]
+            [v2_max + volt_step,v2_max + volt_step,v2_max + volt_step],
+            [v2_max,v2_max,v2_max],
             [v2_max - volt_step,v2_max - volt_step,v2_max - volt_step]
         ]
         while np.max(out_grid) != out_grid[1][1]:
@@ -438,13 +438,13 @@ class lcvr_learning:
             v1_max = v1_grid[row_max][col_max]
             v2_max = v2_arr[row_max][col_max]
             v1_grid = [
-            [v1_max - volt_step, v1_max, v1_max + volt_step]
-            [v1_max - volt_step, v1_max, v1_max + volt_step]
-            [v1_max - volt_step, v1_max, v1_max + volt_step]
+            [v1_max - volt_step, v1_max, v1_max + volt_step],
+            [v1_max - volt_step, v1_max, v1_max + volt_step],
+            [v1_max - volt_step, v1_max, v1_max + volt_step],
             ]
             v2_grid = [
-            [v2_max + volt_step,v2_max + volt_step,v2_max + volt_step]
-            [v2_max,v2_max,v2_max]
+            [v2_max + volt_step,v2_max + volt_step,v2_max + volt_step],
+            [v2_max,v2_max,v2_max],
             [v2_max - volt_step,v2_max - volt_step,v2_max - volt_step]
             ]
             
