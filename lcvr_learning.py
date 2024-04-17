@@ -6,6 +6,11 @@ from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
 from skopt import BayesSearchCV
 from skopt.space import Real
+import torch
+from botorch.models import SingleTaskGP
+from botorch.fit import fit_gpytorch_model
+from botorch.acquisition import ExpectedImprovement
+from botorch.optim import optimize_acqf
 
 
 class lcvr_learning:
@@ -452,7 +457,40 @@ class lcvr_learning:
 
         return training_df
 
-        
+    def read_output(self,ch1_volts,ch2_volts,delay):
+
+        self.set_input_volts(ch1_volts,1)
+        self.set_input_volts(ch2_volts,2)
+        time.sleep(delay)
+        out = self.get_voltage()
+
+        return out
+
+    def get_training_bayes(self, num_iterations: int, wavelength,gain = 4):
+        """
+        Uses Pytorch based Bayesian max/min finding to quickly find the max and min, then scan that V1
+        """
+
+        delay = 1
+        X_init = (torch.rand(5, 2)  * (9.4) + 0.6)
+        y_init = torch.tensor([self.read_output(x[0], x[1],delay) for x in X_init]).unsqueeze(-1) 
+
+        bounds = torch.tensor([[0.6, 10.0], [0.6, 10.0]]) 
+        model = SingleTaskGP(X_init, y_init)
+        EI = ExpectedImprovement(model, best_f=y_init.max()) 
+
+        # Optimize the acquisition function and get the next sample point
+        for _ in range(num_iterations):
+            new_x, _ = optimize_acqf(EI, bounds=bounds, q=1, num_restarts=5, raw_samples=20) 
+            new_y = torch.tensor([self.read_output(x[0], x[1],delay) for x in new_x]).unsqueeze(-1)
+
+        # Update the model with new data
+        model = SingleTaskGP(torch.cat([X_init, new_x]), torch.cat([y_init, new_y]))
+        EI = ExpectedImprovement(model, best_f=new_y.max())
+
+        best_x = model(bounds).mean
+
+        return best_x.tolist()
 
 
 
