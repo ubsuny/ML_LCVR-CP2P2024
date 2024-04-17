@@ -1,4 +1,5 @@
 import time
+from tqdm import tqdm
 import math
 import numpy as np
 import pandas as pd
@@ -11,6 +12,9 @@ from botorch.models import SingleTaskGP
 from botorch.fit import fit_gpytorch_model
 from botorch.acquisition import ExpectedImprovement
 from botorch.optim import optimize_acqf
+from botorch.acquisition import UpperConfidenceBound 
+from botorch.sampling import SobolQMCNormalSampler
+import random
 
 
 class lcvr_learning:
@@ -326,6 +330,68 @@ class lcvr_learning:
 
         return trainingdataframe
 
+    def get_training_data_rand(self, num_iterations: int, wavelength,gain = 4,mode = "all",v1 = 0):
+            """
+                Generates training data by scanning a range of input voltages for each lcvr and measuring the
+                differential output signal from the photodetectors
+
+                Args:
+                    num_iterations: Number of times you wish to iterate. More = better quality data
+                    wavelength: Input wavelength for given set. Necessary for 3D fitting
+                    gain = gain factor on the ADC
+                    mode: String, can be "all" or "fixed_v1"
+                    v1: only needed for fixed_v1 mode, sets constant V1 during scan
+                Returns:
+                    trainingdataframe: A pandas dataframe containing the training data
+            """
+            self.signal.set_pga(gain)
+            readmode = "single"
+
+            print("Starting training data scan. Don't touch anything please")
+
+            min_volt = .6
+            max_volt = 10
+            delay = 1 #Response time of lcvr is ~30 ms, but can take longer to actually relax? So for training data purposes
+                        # a large response time is *very* useful
+
+            # First check to make sure the parameters are in a safe range, then set voltage to a low value on both
+            self.set_input_volts(min_volt,1)
+            self.set_input_volts(min_volt,2)
+            self.outputs_on()
+            time.sleep(delay)
+
+            v1_vals = np.random.rand(num_iterations)  * (max_volt - min_volt) + min_volt
+            v2_vals = np.random.rand(num_iterations)  * (max_volt-min_volt) + min_volt
+
+            if mode =="all":
+                trainingdata = []
+
+                for i in tqdm(range(num_iterations)):
+                    self.check_params()
+                    ch1_volts = v1_vals[i]
+                    ch2_volts = v2_vals[i]
+                    self.set_input_volts(ch1_volts,1)
+                    self.set_input_volts(ch2_volts,2)
+                    time.sleep(delay)
+                    new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage(mode = readmode)}
+                    trainingdata.append(new_row)
+
+                self.set_input_volts(min_volt,1)
+                time.sleep(delay)
+
+            else:
+                raise ValueError("Invalid Scan Mode")
+
+            self.set_input_volts(min_volt,1)
+            self.set_input_volts(min_volt,2)
+            self.outputs_off()
+
+
+            trainingdataframe = pd.DataFrame(trainingdata)
+
+            trainingdataframe = self.add_angle(trainingdataframe)
+
+            return trainingdataframe
 
     def get_2d_data(self, training_data, num_steps: int,num_axes = 1):
         """
@@ -472,27 +538,36 @@ class lcvr_learning:
         """
 
         delay = 1
-        X_init = (torch.rand(5, 2)  * (9.4) + 0.6)
-        y_init = torch.tensor([self.read_output(x[0], x[1],delay) for x in X_init]).unsqueeze(-1) 
-
         bounds = torch.tensor([[0.6, 10.0], [0.6, 10.0]]) 
-        model = SingleTaskGP(X_init, y_init)
-        EI = ExpectedImprovement(model, best_f=y_init.max()) 
+        #X_test = (torch.rand(5, 2)  * (9.4) + 0.6)
+        #y_test = torch.tensor([self.read_output(x[0], x[1],delay) for x in X_test]).unsqueeze(-1) 
+        #model = SingleTaskGP(X_test, y_test)
+        #EI = ExpectedImprovement(model, best_f=y_test.max()) 
+        #model.train()
+        qmc_sampler = SobolQMCNormalSampler(sample_shape=torch.Size([10]))
+        #post = model.posterior(X_test)
+        X_train = qmc_sampler(bounds)
+        y_train = torch.tensor([self.read_output(x[0].detach().numpy(), x[1].detach().numpy(),delay) for x in X_train]).unsqueeze(-1) 
+
+        model = SingleTaskGP(X_train, y_train)
+        EI = ExpectedImprovement(model, best_f=y_train.max()) 
+        model.train()
 
         # Optimize the acquisition function and get the next sample point
         for _ in range(num_iterations):
             new_x, _ = optimize_acqf(EI, bounds=bounds, q=1, num_restarts=5, raw_samples=20) 
             new_y = torch.tensor([self.read_output(x[0], x[1],delay) for x in new_x]).unsqueeze(-1)
 
-        # Update the model with new data
-        model = SingleTaskGP(torch.cat([X_init, new_x]), torch.cat([y_init, new_y]))
-        EI = ExpectedImprovement(model, best_f=new_y.max())
+            X_train = torch.cat([X_train, new_x])  # Combined data 
+            y_train = torch.cat([y_train, new_y])
+            model = SingleTaskGP(X_train, y_train) 
+            EI = ExpectedImprovement(model, best_f=y_train.max())
+            model.train()
 
-        best_x = model(bounds).mean
+        posterior = model.posterior(bounds) 
+        best_x = posterior.mean 
 
         return best_x.tolist()
-
-
 
     def close_connection(self):
         self.funcgen.close()
