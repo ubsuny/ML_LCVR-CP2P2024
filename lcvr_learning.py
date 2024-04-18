@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
+from scipy.optimize import minimize, Bounds
 from skopt import BayesSearchCV
 from skopt.space import Real
 import torch
@@ -308,7 +309,7 @@ class lcvr_learning:
             ch1_volts = v1
             self.set_input_volts(ch1_volts,1)
 
-            for i in range(realnum):
+            for i in tqdm(range(realnum)):
                 self.check_params()
                 ch2_volts = volt_range[i]
                 self.set_input_volts(ch2_volts,2)
@@ -329,6 +330,68 @@ class lcvr_learning:
         trainingdataframe = self.add_angle(trainingdataframe)
 
         return trainingdataframe
+
+    def find_3d_max(self,data_3d):
+        """
+        Uses Nelder-Mead to find true maximum of 3d data given some randomly sampled data
+        """
+
+        max_index = data_3d['Out'].idxmax()
+        step = data_3d['V1'][1] - data_3d['V1'][0] #volt_step from the initial reading
+
+        max_point = data_3d.iloc[max_index]
+        x_max = max_point.V1
+        y_max = max_point.V2
+        z_max = max_point.Out
+        bounds = Bounds([0.6, 0.6], [10, 10])  
+
+        vertex_1 = np.array([x_max, y_max])
+        vertex_2 = vertex_1 + np.array([2*step, 0])
+        vertex_3 = vertex_1 + np.array([0, 2*step]) 
+        initial_simplex = np.array([vertex_1, vertex_2, vertex_3])
+
+        # Guided Sampling Function
+        def sample_near_high_values(data, current_max_value, radius=0.5):
+            sample_center = data[0]
+            x_min = 0.6
+            x_max = 10.0
+            y_min = x_min
+            y_max = x_max
+
+            while True:  # Loop until we generate a valid sample
+                new_point = sample_center + radius * (np.random.rand(2) - 0.5) 
+                new_x, new_y = new_point  # Extract x and y
+                x_min = 0.6
+                x_max = 10.0
+                y_min = x_min
+                y_max = x_max
+
+                if x_min <= new_x <= x_max and y_min <= new_y <= y_max: 
+                    break  # Valid sample found 
+
+            return new_point 
+
+        def optimization_wrapper(point):
+            x = np.round(point[0],decimals = 1)
+            y = np.round(point[1],decimals = 1)
+            delay = 1
+            z = self.read_output(x, y,delay)
+            return -z
+        
+
+
+        result = minimize(optimization_wrapper, initial_simplex[0], method='Nelder-Mead', 
+                        options={'initial_simplex': initial_simplex},bounds = bounds)
+
+        # Sampling iterations for refinement                         
+        for _ in tqdm(range(5)):  # Run for a few iterations
+            new_sample = sample_near_high_values(result.x.reshape(1,-1), result.fun)
+            result = minimize(optimization_wrapper, new_sample, method='Nelder-Mead', bounds = bounds) 
+
+        point_max = result.x
+        out_max = result.fun
+
+        return point_max,out_max
 
     def get_training_data_rand(self, num_iterations: int, wavelength,gain = 4,mode = "all",v1 = 0):
             """
@@ -393,7 +456,17 @@ class lcvr_learning:
 
             return trainingdataframe
 
-    def get_2d_data(self, training_data, num_steps: int,num_axes = 1):
+    def read_output(self,ch1_volts,ch2_volts,delay):
+
+        self.set_input_volts(ch1_volts,1)
+        self.set_input_volts(ch2_volts,2)
+        time.sleep(delay)
+        out = self.get_voltage()
+
+        return out
+
+
+    def get_2d_data(self, training_data, num_steps: int,optimize = False):
         """
         Gets a 2D fit for a *single wavelength* that can generate an arbitrary polarization with
         fixed V1. It takes the data and checks for a fixed V1 axis where max polarization
@@ -402,6 +475,7 @@ class lcvr_learning:
         Args:
             training_data: The 3D scan data obtained from get_training_data()
             num_steps: Number of steps for 2d data collection
+            optimize: If True, will use find_3d_max to get the absolute best global max. (Adds about 10 minutes, give or take, and improvement is not *masssive*)
 
         Returns:
             data_2d: Data used for the 2D fit
@@ -409,31 +483,18 @@ class lcvr_learning:
 
         #Finds V1 with max range
         print("Finding optimal V1")
-        min_range = 85
-        max_range = []
-        data_2d = []
-        v1_vals = training_data['V1'].unique()
-        for val in v1_vals:
-            axis = training_data[training_data['V1'] == val]
-            ranged = axis['Angle'].max() - axis['Angle'].min()
-            if ranged > min_range:
-                max_range.append([val,ranged])
+        maxind3 = training_data['Out'].idxmax()
+        best_v1 = training_data['V1'][maxind3]
+
+        if optimize:
+            max_point, out_max = self.find_3d_max(training_data)
+            best_v1 = max_point[0]
         
-        sorted_range = sorted(max_range, key=lambda x: x[1], reverse=True)
-        if int(num_axes) > len(sorted_range):
-            num_axes = int(len(sorted_range))
-
-        if len(sorted_range) == 0:
-            raise SystemExit("Error: No Optimal Range Found. Please increase training data size")
     
-        for i in range(num_axes):
-            optimal_v1 = sorted_range[i][0]
-
-            #Gets more thorough data along fixed V1 axis
-            print("Rescanning along new axis")
-            wavelength = training_data['Wavelength'][2]
-            data = self.get_training_data(num_steps, wavelength, mode = "fixed_v1", v1 = optimal_v1)
-            data_2d.append(data)
+        #Gets more thorough data along fixed V1 axis
+        print("Rescanning along new axis")
+        wavelength = training_data['Wavelength'][2]
+        data_2d = self.get_training_data(num_steps, wavelength, mode = "fixed_v1", v1 = best_v1)
 
         return data_2d
     
@@ -522,15 +583,6 @@ class lcvr_learning:
         training_df = pd.DataFrame(trainingdata)
 
         return training_df
-
-    def read_output(self,ch1_volts,ch2_volts,delay):
-
-        self.set_input_volts(ch1_volts,1)
-        self.set_input_volts(ch2_volts,2)
-        time.sleep(delay)
-        out = self.get_voltage()
-
-        return out
 
     def get_training_bayes(self, num_iterations: int, wavelength,gain = 4):
         """
