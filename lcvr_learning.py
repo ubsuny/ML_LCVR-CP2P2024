@@ -344,7 +344,15 @@ class lcvr_learning:
 
     def find_3d_max(self,data_3d):
         """
-        Uses Nelder-Mead to find true maximum of 3d data given some randomly sampled data
+        Uses Nelder-Mead to find true maximum of 3d data given some randomly sampled data. Used for finding the absolute global maximum
+        which gives the necessary V1 value for strictly linear output polarization
+
+        Args:
+            data_3d: 3d training data (ideally sampled with get_training_data_rand for best performance)
+
+        Returns:
+            point_max: 2D array giving V1,V2 where output is maximized
+            out_max: Maximum output (good for later scaling and such if needed)
         """
 
         max_index = data_3d['Out'].idxmax()
@@ -380,11 +388,11 @@ class lcvr_learning:
                 if x_min <= new_x <= x_max and y_min <= new_y <= y_max: 
                     break  # Valid sample found 
 
-            return new_point 
+            return new_point
 
         def optimization_wrapper(point):
-            x = np.round(point[0],decimals = 1)
-            y = np.round(point[1],decimals = 1)
+            x = np.round(point[0],decimals = 3)
+            y = np.round(point[1],decimals = 3)
             delay = 1
             z = self.read_output(x, y,delay)
             return -z
