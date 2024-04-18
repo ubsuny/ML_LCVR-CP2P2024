@@ -207,6 +207,8 @@ class lcvr_learning:
 
     def get_training_data(self, num_iterations: int, wavelength,gain = 4,mode = "all",v1 = 0):
         """
+            ***THIS IS ANTIQUATED, USE get_training_data_rand() FOR BETTER RESULTS!***
+            ***I will probably remove this soon***
             Generates training data by scanning a range of input voltages for each lcvr and measuring the
             differential output signal from the photodetectors
 
@@ -331,6 +333,15 @@ class lcvr_learning:
 
         return trainingdataframe
 
+    def read_output(self,ch1_volts,ch2_volts,delay):
+
+        self.set_input_volts(ch1_volts,1)
+        self.set_input_volts(ch2_volts,2)
+        time.sleep(delay)
+        out = self.get_voltage()
+
+        return out
+
     def find_3d_max(self,data_3d):
         """
         Uses Nelder-Mead to find true maximum of 3d data given some randomly sampled data
@@ -384,7 +395,7 @@ class lcvr_learning:
                         options={'initial_simplex': initial_simplex},bounds = bounds)
 
         # Sampling iterations for refinement                         
-        for _ in tqdm(range(5)):  # Run for a few iterations
+        for _ in tqdm(range(2)):  # Run for a few iterations
             new_sample = sample_near_high_values(result.x.reshape(1,-1), result.fun)
             result = minimize(optimization_wrapper, new_sample, method='Nelder-Mead', bounds = bounds) 
 
@@ -417,12 +428,6 @@ class lcvr_learning:
             delay = 1 #Response time of lcvr is ~30 ms, but can take longer to actually relax? So for training data purposes
                         # a large response time is *very* useful
 
-            # First check to make sure the parameters are in a safe range, then set voltage to a low value on both
-            self.set_input_volts(min_volt,1)
-            self.set_input_volts(min_volt,2)
-            self.outputs_on()
-            time.sleep(delay)
-
             v1_vals = np.random.rand(num_iterations)  * (max_volt - min_volt) + min_volt
             v2_vals = np.random.rand(num_iterations)  * (max_volt-min_volt) + min_volt
 
@@ -433,14 +438,8 @@ class lcvr_learning:
                     self.check_params()
                     ch1_volts = v1_vals[i]
                     ch2_volts = v2_vals[i]
-                    self.set_input_volts(ch1_volts,1)
-                    self.set_input_volts(ch2_volts,2)
-                    time.sleep(delay)
-                    new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.get_voltage(mode = readmode)}
+                    new_row = {'Wavelength': wavelength, 'V1': ch1_volts, 'V2': ch2_volts, 'Gain': gain, 'Out': self.read_output(ch1_volts,ch2_volts,delay)}
                     trainingdata.append(new_row)
-
-                self.set_input_volts(min_volt,1)
-                time.sleep(delay)
 
             else:
                 raise ValueError("Invalid Scan Mode")
@@ -449,21 +448,11 @@ class lcvr_learning:
             self.set_input_volts(min_volt,2)
             self.outputs_off()
 
-
             trainingdataframe = pd.DataFrame(trainingdata)
 
             trainingdataframe = self.add_angle(trainingdataframe)
 
             return trainingdataframe
-
-    def read_output(self,ch1_volts,ch2_volts,delay):
-
-        self.set_input_volts(ch1_volts,1)
-        self.set_input_volts(ch2_volts,2)
-        time.sleep(delay)
-        out = self.get_voltage()
-
-        return out
 
 
     def get_2d_data(self, training_data, num_steps: int,optimize = False):
