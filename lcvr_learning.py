@@ -334,7 +334,17 @@ class lcvr_learning:
         return trainingdataframe
 
     def read_output(self,ch1_volts,ch2_volts,delay):
+        """
+        Sets V1 and V2 to given values and reads out the resulting signal
 
+        Args:
+            ch1_volts: Voltage for LCVR 1
+            ch2_volts: Voltage for LCVR 2
+            delay: Delay between setting params and reading measurement (needed b/c response time of LCVR)
+
+        Returns:
+            out: Output signal from photodetectors
+        """
         self.set_input_volts(ch1_volts,1)
         self.set_input_volts(ch2_volts,2)
         time.sleep(delay)
@@ -472,7 +482,8 @@ class lcvr_learning:
         Args:
             training_data: The 3D scan data obtained from get_training_data()
             num_steps: Number of steps for 2d data collection
-            optimize: If True, will use find_3d_max to get the absolute best global max. (Adds about 10 minutes, give or take, and improvement is not *masssive*)
+            optimize: If True, will use find_3d_max to get the absolute best global max. 
+                        (Adds about 5-10 minutes, and improvement is usually not *massive* but can be significant)
 
         Returns:
             data_2d: Data used for the 2D fit
