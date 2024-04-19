@@ -6,15 +6,16 @@ import pandas as pd
 from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
 from scipy.optimize import minimize, Bounds
+from scipy.signal import argrelextrema
 from skopt import BayesSearchCV
 from skopt.space import Real
 import torch
-from botorch.models import SingleTaskGP
-from botorch.fit import fit_gpytorch_model
-from botorch.acquisition import ExpectedImprovement
-from botorch.optim import optimize_acqf
-from botorch.acquisition import UpperConfidenceBound 
-from botorch.sampling import SobolQMCNormalSampler
+#from botorch.models import SingleTaskGP
+#from botorch.fit import fit_gpytorch_model
+#from botorch.acquisition import ExpectedImprovement
+#from botorch.optim import optimize_acqf
+#from botorch.acquisition import UpperConfidenceBound 
+#from botorch.sampling import SobolQMCNormalSampler
 import random
 
 
@@ -667,6 +668,46 @@ class optimize_model:
         lcvrs.close_connection()
         
         return rmse, rmse_measurements
+    
+    def calc_retardance(self):
+        """
+        Takes the 2d output data and converts it to retardance of the lcvr as a function of voltage
+        Note: Need to flip it so that instead of increasing again after min it continues to decrease,
+        Also need to rescale knowing that the first max is a 3/4 plate, first min is 1/4 plate, and
+        first zero is a 1/2 plate
+        """
+
+        data = self.data_2d
+        volts = np.array(data['V2'])
+        outs = np.array(data['Out'])
+
+        maxes = argrelextrema(outs,np.greater,order = 100)
+        mins = argrelextrema(outs,np.less,order = 100)
+
+        first_max_ind = maxes[0][0]
+        first_min_ind = mins[0][0]
+        first_max_volts = volts[first_max_ind]
+        first_max_out = outs[first_max_ind]
+        first_min_volts = volts[first_min_ind]
+        first_min_out = outs[first_min_ind]
+
+        first_split_volts = data['V2'][first_max_ind:first_min_ind]
+        first_split_out = data['Out'][first_max_ind:first_min_ind]
+        sec_split_volts = data['V2'][first_min_ind::]
+        sec_split_out = data['Out'][first_min_ind::]
+        #Need to rescale these outs based on .75 -> 0 lambda
+
+        ret1 = (data['Out'] - first_min_out) / (first_max_out - first_min_out)
+        ret1 = ret1 * (0.75 - 0.25) + 0.25 
+        ret1[first_min_ind::] = (data['Out'][first_min_ind::] - 0.0) / (-first_min_out - 0.0)
+        ret1[first_min_ind::] = ret1[first_min_ind::] * (0.00 -0.25) - 0.00 
+        data['Retardance'] = ret1
+        data['V2'] = data['V2'][first_max_ind::]
+
+        return data
+
+
+        
 
 class complete_fit_2d:
     """
